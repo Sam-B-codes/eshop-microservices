@@ -1,13 +1,22 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "files": [],
-  "include": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
-    }
-  ]
+    "extends":  "../../tsconfig.base.json",
+    "files":  [
+
+              ],
+    "include":  [
+
+                ],
+    "references":  [
+                       {
+                           "path":  "./tsconfig.app.json"
+                       },
+                       {
+                           "path":  "./tsconfig.spec.json"
+                       }
+                   ],
+    "compilerOptions":  {
+                            "noEmit":  false,
+                            "noEmitOnError":  false,
+                            "emitDeclarationOnly":  false
+                        }
 }
