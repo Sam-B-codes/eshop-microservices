@@ -3,7 +3,7 @@
   "framework": "express",
   "buildCommand": "cd ../.. && npx prisma generate --schema=prisma/schema.prisma && npx nx build @org/Auth-services --configuration=production --skip-nx-cache",
   "functions": {
-    "src/index.cjs": {
+    "src/index.js": {
       "includeFiles": "dist/**",
       "maxDuration": 60
     }
