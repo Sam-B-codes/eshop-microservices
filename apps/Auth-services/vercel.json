@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "express",
+  "buildCommand": "cd ../.. && npx prisma generate --schema=prisma/schema.prisma && npx nx build @org/Auth-services --configuration=production --skip-nx-cache",
+  "functions": {
+    "src/index.cjs": {
+      "includeFiles": "dist/**",
+      "maxDuration": 60
+    }
+  }
+}
