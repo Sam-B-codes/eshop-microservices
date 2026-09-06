@@ -1,0 +1,630 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ======================================================
+// USER IMAGE
+// ======================================================
+
+model images {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  file_id String
+  url     String
+
+  userId String? @unique @db.ObjectId
+  users  users?  @relation(fields: [userId], references: [id])
+}
+
+// ======================================================
+// USERS
+// ======================================================
+
+model users {
+  id       String     @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  email    String     @unique
+  password String?
+  status   UserStatus @default(ACTIVE)
+
+  following String[]
+
+  avatar   images?
+  cart     Cart?
+  wishlist Wishlist?
+  orders   Order[]
+  reviews  Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// ======================================================
+// SELLERS
+// ======================================================
+
+model sellers {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Authentication
+
+  name         String
+  email        String       @unique
+  password     String?
+  phone_number String
+  country      String
+  status       SellerStatus @default(ACTIVE)
+
+  // Shop information
+
+  shopName     String?
+  shopBio      String?
+  shopAddress  String?
+  website      String?
+  category     String?
+  openingHours String?
+
+  // Onboarding
+
+  bankConnected Boolean @default(false)
+  isOnboarded   Boolean @default(false)
+
+  // Relations
+
+  products     Product[]
+  coupons      Coupon[]
+  orderItems   OrderItem[]
+  sellerOrders SellerOrder[]
+  settlements  SellerSettlement[]
+  reviews      Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([isOnboarded])
+  @@index([bankConnected])
+  @@index([createdAt])
+}
+
+enum SellerStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// ======================================================
+// ADMINS
+// ======================================================
+
+model admins {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name     String
+  email    String      @unique
+  password String
+  role     AdminRole   @default(ADMIN)
+  status   AdminStatus @default(ACTIVE)
+
+  lastLoginAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+// ======================================================
+// PRODUCTS
+// ======================================================
+
+model Product {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  sellerId String  @db.ObjectId
+  seller   sellers @relation(fields: [sellerId], references: [id])
+
+  title       String
+  slug        String  @unique
+  description String
+  category    String
+  brand       String?
+
+  price         Float
+  discountPrice Float?
+  salePrice     Float
+
+  stock Int
+  sku   String? @unique
+
+  images Json
+  tags   String[]
+
+  status ProductStatus @default(DRAFT)
+
+  cartItems     CartItem[]
+  wishlistItems WishlistItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([category])
+  @@index([salePrice])
+  @@index([createdAt])
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  OUT_OF_STOCK
+  ARCHIVED
+}
+
+// ======================================================
+// CART
+// ======================================================
+
+model Cart {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @unique @db.ObjectId
+  user   users  @relation(fields: [userId], references: [id])
+
+  items CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// CART ITEM
+// ======================================================
+
+model CartItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  cartId String @db.ObjectId
+  cart   Cart   @relation(fields: [cartId], references: [id])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+}
+
+// ======================================================
+// WISHLIST
+// ======================================================
+
+model Wishlist {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @unique @db.ObjectId
+  user   users  @relation(fields: [userId], references: [id])
+
+  items WishlistItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// WISHLIST ITEM
+// ======================================================
+
+model WishlistItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  wishlistId String   @db.ObjectId
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+  @@index([wishlistId])
+  @@index([productId])
+}
+
+// ======================================================
+// COUPONS
+// ======================================================
+
+model Coupon {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  code        String
+  description String?
+
+  discountType  CouponDiscountType
+  discountValue Float
+
+  minimumOrderValue Float?
+  maximumDiscount   Float?
+
+  usageLimit Int?
+  usedCount  Int  @default(0)
+
+  expiryDate DateTime
+  isActive   Boolean  @default(true)
+
+  sellerId String  @db.ObjectId
+  seller   sellers @relation(fields: [sellerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sellerId])
+  @@index([code])
+  @@index([isActive])
+  @@index([expiryDate])
+}
+
+enum CouponDiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+// ======================================================
+// ORDERS
+// ======================================================
+
+model Order {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Customer
+
+  userId String @db.ObjectId
+  user   users  @relation(fields: [userId], references: [id])
+
+  // Global customer-facing state
+
+  status        OrderStatus   @default(PENDING_PAYMENT)
+  paymentStatus PaymentStatus @default(PENDING)
+
+  // Overall marketplace pricing
+
+  subtotal       Float
+  discount       Float @default(0)
+  shippingAmount Float @default(0)
+  totalAmount    Float
+
+  // Coupon snapshot
+
+  couponId       String? @db.ObjectId
+  couponCode     String?
+  couponSellerId String? @db.ObjectId
+  couponDiscount Float   @default(0)
+
+  // Contact snapshot
+
+  contactEmail String
+  contactPhone String
+
+  // Shipping snapshot
+
+  shippingFullName     String
+  shippingAddressLine1 String
+  shippingAddressLine2 String?
+  shippingCity         String
+  shippingState        String
+  shippingPostalCode   String
+  shippingCountry      String
+
+  // Multi-seller order relations
+
+  items             OrderItem[]
+  sellerOrders      SellerOrder[]
+  sellerSettlements SellerSettlement[]
+  reviews           Review[]
+
+  // Payment information
+
+  paymentProvider   String?
+  paymentOrderId    String?
+  paymentId         String?
+  paymentVerifiedAt DateTime?
+
+  // Payment fulfilment idempotency
+
+  fulfillmentProcessedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+// ======================================================
+// ORDER ITEM
+// ======================================================
+
+model OrderItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  sellerId String  @db.ObjectId
+  seller   sellers @relation(fields: [sellerId], references: [id])
+
+  // Product snapshot
+
+  productTitle String
+  productSlug  String
+  productImage String?
+  productSku   String?
+
+  // Price snapshot
+
+  unitPrice Float
+  quantity  Int
+  lineTotal Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([sellerId])
+}
+
+// ======================================================
+// PRODUCT REVIEW
+// ======================================================
+
+model Review {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Customer
+
+  userId String @db.ObjectId
+  user   users  @relation(fields: [userId], references: [id])
+
+  // Reviewed product
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  // Product owner
+
+  sellerId String  @db.ObjectId
+  seller   sellers @relation(fields: [sellerId], references: [id])
+
+  // Verified purchase order
+
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  // Customer review
+
+  rating  Int
+  title   String?
+  comment String
+
+  // Seller response
+
+  sellerReply     String?
+  sellerRepliedAt DateTime?
+
+  // Moderation
+
+  status ReviewStatus @default(PUBLISHED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One review per customer and product
+
+  @@unique([userId, productId])
+  @@index([productId])
+  @@index([sellerId])
+  @@index([orderId])
+  @@index([rating])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+}
+
+// ======================================================
+// SELLER ORDER
+// ======================================================
+
+model SellerOrder {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Parent marketplace order
+
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  // Seller who owns this fulfilment
+
+  sellerId String  @db.ObjectId
+  seller   sellers @relation(fields: [sellerId], references: [id])
+
+  // Independent seller fulfilment state
+
+  status SellerOrderStatus @default(PENDING_PAYMENT)
+
+  processingAt DateTime?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  cancelledAt  DateTime?
+
+  // Seller-specific pricing snapshot
+
+  subtotal    Float
+  discount    Float @default(0)
+  totalAmount Float
+
+  // Shipping and tracking
+
+  trackingNumber  String?
+  shippingCarrier String?
+
+  settlement SellerSettlement?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, sellerId])
+  @@index([sellerId])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ======================================================
+// SELLER SETTLEMENT
+// ======================================================
+
+model SellerSettlement {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Parent customer order
+
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  // Seller receiving the earnings
+
+  sellerId String  @db.ObjectId
+  seller   sellers @relation(fields: [sellerId], references: [id])
+
+  // One settlement for each seller fulfilment
+
+  sellerOrderId String      @unique @db.ObjectId
+  sellerOrder   SellerOrder @relation(fields: [sellerOrderId], references: [id])
+
+  // Currency
+
+  currency String @default("INR")
+
+  // Authoritative payment snapshot
+
+  paymentProvider   String?
+  paymentId         String?
+  paymentVerifiedAt DateTime?
+
+  // Seller revenue snapshot
+
+  grossAmount     Float
+  discountAmount  Float @default(0)
+  netAmount       Float
+  platformFeeRate Float @default(0)
+  platformFee     Float
+  sellerEarnings  Float
+
+  // Internal settlement lifecycle
+
+  status SettlementStatus @default(PENDING)
+
+  processingAt  DateTime?
+  settledAt     DateTime?
+  failedAt      DateTime?
+  failureReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sellerId])
+  @@index([orderId])
+  @@index([status])
+  @@index([paymentVerifiedAt])
+  @@index([createdAt])
+}
+
+// ======================================================
+// GLOBAL ORDER STATUS
+// ======================================================
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ======================================================
+// SELLER-SPECIFIC FULFILMENT STATUS
+// ======================================================
+
+enum SellerOrderStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ======================================================
+// PAYMENT STATUS
+// ======================================================
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ======================================================
+// SETTLEMENT STATUS
+// ======================================================
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  SETTLED
+  FAILED
+}

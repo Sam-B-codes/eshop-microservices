@@ -1,0 +1,64 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/Auth-services-e2e"
+    },
+    {
+      "path": "./apps/Auth-services"
+    },
+    {
+      "path": "./api-gateway-e2e"
+    },
+    {
+      "path": "./api-gateway"
+    },
+    {
+      "path": "./user-ui"
+    },
+    {
+      "path": "./seller-ui"
+    },
+    {
+      "path": "./product-service-e2e"
+    },
+    {
+      "path": "./product-service"
+    },
+    {
+      "path": "./libs"
+    },
+    {
+      "path": "./prisma"
+    },
+    {
+      "path": "./redis"
+    },
+    {
+      "path": "./coupon-service-e2e"
+    },
+    {
+      "path": "./coupon-service"
+    },
+    {
+      "path": "./order-service-e2e"
+    },
+    {
+      "path": "./order-service"
+    },
+    {
+      "path": "./payment-service-e2e"
+    },
+    {
+      "path": "./payment-service"
+    },
+    {
+      "path": "./admin-ui"
+    },
+    {
+      "path": "./admin-service"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@org/Auth-services-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "implicitDependencies": [
+      "@org/Auth-services"
+    ],
+    "targets": {
+      "e2e": {
+        "executor": "@nx/jest:jest",
+        "outputs": [
+          "{projectRoot}/test-output/jest/coverage"
+        ],
+        "options": {
+          "jestConfig": "apps/Auth-services-e2e/jest.config.cts",
+          "passWithNoTests": true
+        },
+        "dependsOn": [
+          "@org/Auth-services:build",
+          "@org/Auth-services:serve"
+        ]
+      }
+    }
+  }
+}

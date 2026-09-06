@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activate Your Account</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:Arial,Helvetica,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:40px 0;">
+    <tr>
+      <td align="center">
+
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,.08);">
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background:#2563eb;padding:35px;color:#fff;">
+              <h1 style="margin:0;">🛒 E-Shop</h1>
+              <p style="margin-top:10px;font-size:15px;">
+                Welcome to our community!
+              </p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+
+              <h2 style="color:#333;">
+                Hello <%= name %>,
+              </h2>
+
+              <p style="font-size:16px;color:#555;line-height:1.7;">
+                Thank you for creating an account with
+                <strong>E-Shop</strong>.
+              </p>
+
+              <p style="font-size:16px;color:#555;line-height:1.7;">
+                Please use the activation code below to verify your email address.
+              </p>
+
+              <div style="margin:35px 0;text-align:center;">
+
+                <span
+                  style="
+                    display:inline-block;
+                    padding:18px 40px;
+                    background:#2563eb;
+                    color:white;
+                    font-size:30px;
+                    font-weight:bold;
+                    border-radius:8px;
+                    letter-spacing:6px;
+                  "
+                >
+                  <%= otp %>
+                </span>
+
+              </div>
+
+              <p style="font-size:15px;color:#666;">
+                This activation code will expire in
+                <strong>5 minutes</strong>.
+              </p>
+
+              <p style="font-size:15px;color:#666;">
+                If you didn't create this account, you can safely ignore this email.
+              </p>
+
+              <hr style="margin:35px 0;border:none;border-top:1px solid #eee;">
+
+              <p style="font-size:14px;color:#999;text-align:center;">
+                Need help? Contact our support team anytime.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background:#fafafa;padding:25px;">
+
+              <p style="margin:0;color:#888;font-size:14px;">
+                © <%= new Date().getFullYear() %> E-Shop
+              </p>
+
+              <p style="margin-top:10px;color:#999;font-size:13px;">
+                This is an automated email. Please do not reply.
+              </p>
+
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

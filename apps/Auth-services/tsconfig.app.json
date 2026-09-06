@@ -1,0 +1,38 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "out-tsc/auth-services",
+    "rootDir": "../../",
+    "types": ["node"],
+    "tsBuildInfoFile": "out-tsc/auth-services/tsconfig.app.tsbuildinfo",
+
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
+  },
+  "include": [
+    "src/**/*.ts",
+     "src/**/*.d.ts",
+    "src/**/*.json",
+    "../../packages/**/*.ts"
+  ],
+  "exclude": [
+    "out-tsc",
+    "dist",
+    "jest.config.ts",
+    "jest.config.cts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ],
+  "references": [
+    {
+      "path": "../../redis/tsconfig.lib.json"
+    },
+    {
+      "path": "../../prisma/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/tsconfig.lib.json"
+    }
+  ]
+}
