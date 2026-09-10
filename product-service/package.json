@@ -1,71 +1,123 @@
 {
-  "name": "@org/product-service",
-  "version": "0.0.1",
-  "private": true,
-  "nx": {
-    "targets": {
-      "prune-lockfile": {
-        "dependsOn": [
-          "build"
-        ],
-        "cache": true,
-        "executor": "@nx/js:prune-lockfile",
-        "outputs": [
-          "{workspaceRoot}/product-service/dist/package.json",
-          "{workspaceRoot}/product-service/dist/package-lock.json"
-        ],
-        "options": {
-          "buildTarget": "build"
-        }
-      },
-      "copy-workspace-modules": {
-        "dependsOn": [
-          "build"
-        ],
-        "cache": true,
-        "outputs": [
-          "{workspaceRoot}/product-service/dist/workspace_modules"
-        ],
-        "executor": "@nx/js:copy-workspace-modules",
-        "options": {
-          "buildTarget": "build"
-        }
-      },
-      "prune": {
-        "dependsOn": [
-          "prune-lockfile",
-          "copy-workspace-modules"
-        ],
-        "executor": "nx:noop"
-      },
-      "serve": {
-        "continuous": true,
-        "executor": "@nx/js:node",
-        "defaultConfiguration": "development",
-        "dependsOn": [
-          "build"
-        ],
-        "options": {
-          "buildTarget": "@org/product-service:build",
-          "runBuildTargetDependencies": false
-        },
-        "configurations": {
-          "development": {
-            "buildTarget": "@org/product-service:build:development"
-          },
-          "production": {
-            "buildTarget": "@org/product-service:build:production"
-          }
-        }
-      },
-      "test": {
-        "options": {
-          "passWithNoTests": true
-        }
-      }
-    }
-  },
-  "dependencies": {
-    "express": "^5.1.0"
-  }
+    "name":  "@org/product-service",
+    "version":  "0.0.1",
+    "private":  true,
+    "nx":  {
+               "targets":  {
+                               "prune-lockfile":  {
+                                                      "dependsOn":  [
+                                                                        "build"
+                                                                    ],
+                                                      "cache":  true,
+                                                      "executor":  "@nx/js:prune-lockfile",
+                                                      "outputs":  [
+                                                                      "{workspaceRoot}/product-service/dist/package.json",
+                                                                      "{workspaceRoot}/product-service/dist/package-lock.json"
+                                                                  ],
+                                                      "options":  {
+                                                                      "buildTarget":  "build"
+                                                                  }
+                                                  },
+                               "copy-workspace-modules":  {
+                                                              "dependsOn":  [
+                                                                                "build"
+                                                                            ],
+                                                              "cache":  true,
+                                                              "outputs":  [
+                                                                              "{workspaceRoot}/product-service/dist/workspace_modules"
+                                                                          ],
+                                                              "executor":  "@nx/js:copy-workspace-modules",
+                                                              "options":  {
+                                                                              "buildTarget":  "build"
+                                                                          }
+                                                          },
+                               "prune":  {
+                                             "dependsOn":  [
+                                                               "prune-lockfile",
+                                                               "copy-workspace-modules"
+                                                           ],
+                                             "executor":  "nx:noop"
+                                         },
+                               "serve":  {
+                                             "continuous":  true,
+                                             "executor":  "@nx/js:node",
+                                             "defaultConfiguration":  "development",
+                                             "dependsOn":  [
+                                                               "build"
+                                                           ],
+                                             "options":  {
+                                                             "buildTarget":  "@org/product-service:build",
+                                                             "runBuildTargetDependencies":  false
+                                                         },
+                                             "configurations":  {
+                                                                    "development":  {
+                                                                                        "buildTarget":  "@org/product-service:build:development"
+                                                                                    },
+                                                                    "production":  {
+                                                                                       "buildTarget":  "@org/product-service:build:production"
+                                                                                   }
+                                                                }
+                                         },
+                               "test":  {
+                                            "options":  {
+                                                            "passWithNoTests":  true
+                                                        }
+                                        },
+                               "build":  {
+                                             "executor":  "@nx/esbuild:esbuild",
+                                             "dependsOn":  [
+                                                               "^build"
+                                                           ],
+                                             "outputs":  [
+                                                             "{options.outputPath}"
+                                                         ],
+                                             "defaultConfiguration":  "production",
+                                             "options":  {
+                                                             "platform":  "node",
+                                                             "outputPath":  "product-service/dist",
+                                                             "format":  [
+                                                                            "cjs"
+                                                                        ],
+                                                             "bundle":  true,
+                                                             "main":  "product-service/src/main.ts",
+                                                             "tsConfig":  "product-service/tsconfig.app.json",
+                                                             "assets":  [
+                                                                            {
+                                                                                "input":  "product-service/src",
+                                                                                "glob":  "assets/**/*",
+                                                                                "output":  "src"
+                                                                            }
+                                                                        ],
+                                                             "excludeFromExternal":  [
+                                                                                         "@org/error-handler",
+                                                                                         "@org/prisma",
+                                                                                         "@org/redis"
+                                                                                     ],
+                                                             "esbuildOptions":  {
+                                                                                    "sourcemap":  true,
+                                                                                    "outExtension":  {
+                                                                                                         ".js":  ".js"
+                                                                                                     }
+                                                                                }
+                                                         },
+                                             "configurations":  {
+                                                                    "development":  {
+
+                                                                                    },
+                                                                    "production":  {
+                                                                                       "generateLockfile":  true,
+                                                                                       "esbuildOptions":  {
+                                                                                                              "sourcemap":  false,
+                                                                                                              "outExtension":  {
+                                                                                                                                   ".js":  ".js"
+                                                                                                                               }
+                                                                                                          }
+                                                                                   }
+                                                                }
+                                         }
+                           }
+           },
+    "dependencies":  {
+                         "express":  "^5.1.0"
+                     }
 }
