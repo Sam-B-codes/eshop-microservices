@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "express",
+  "buildCommand": "cd .. && npx prisma generate --schema=prisma/schema.prisma && npx nx build @org/coupon-service --configuration=production --skip-nx-cache",
+  "functions": {
+    "src/index.js": {
+      "includeFiles": "dist/**",
+      "maxDuration": 60
+    }
+  }
+}
