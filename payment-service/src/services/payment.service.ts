@@ -259,7 +259,7 @@ export const createRazorpayOrder =
       });
 
     console.log(
-      `💳 Razorpay order ${razorpayOrder.id} created for internal order ${order.id}`
+      `ðŸ’³ Razorpay order ${razorpayOrder.id} created for internal order ${order.id}`
     );
 
     return {
@@ -550,7 +550,7 @@ const finalizePaidOrder =
             include: {
               items: true,
               sellerOrders: true,
-              settlements: true,
+              sellerSettlements: true,
             },
           });
         }
@@ -661,7 +661,7 @@ const finalizePaidOrder =
             couponUpdate.count === 0
           ) {
             console.warn(
-              `⚠️ Coupon usage could not be incremented for order ${order.id}`
+              `âš ï¸ Coupon usage could not be incremented for order ${order.id}`
             );
           }
         }
@@ -761,7 +761,7 @@ const finalizePaidOrder =
             include: {
               items: true,
               sellerOrders: true,
-              settlements: true,
+              sellerSettlements: true,
             },
           });
 
@@ -1061,7 +1061,7 @@ export const verifyRazorpayPayment =
       );
 
     console.log(
-      `✅ Razorpay payment ${razorpayPaymentId} verified and order ${order.id} fulfilled`
+      `âœ… Razorpay payment ${razorpayPaymentId} verified and order ${order.id} fulfilled`
     );
 
     return {
