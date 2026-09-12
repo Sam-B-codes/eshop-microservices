@@ -17,23 +17,38 @@ interface UploadResponse {
 export const uploadImage = async (
   file: File
 ): Promise<UploadedImage> => {
-  const formData = new FormData();
+  const formData =
+    new FormData();
 
-  formData.append("image", file);
+  formData.append(
+    "image",
+    file
+  );
 
   try {
-    const response = await api.post<UploadResponse>(
-      "/upload",
-      formData
-    );
+    const response =
+      await api.post<UploadResponse>(
+        "/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
 
-    console.log("UPLOAD RESPONSE:", response.data);
+    console.log(
+      "UPLOAD RESPONSE:",
+      response.data
+    );
 
     return response.data.image;
   } catch (error: any) {
     console.error(
       "UPLOAD ERROR:",
-      error.response?.data || error.message
+      error.response?.data ||
+        error.message
     );
 
     throw error;
