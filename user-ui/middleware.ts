@@ -7,6 +7,9 @@ import {
 // COOKIE NAMES
 // ======================================================
 
+
+
+// User UI protected-route authentication cookies.
 const USER_ACCESS_TOKEN_COOKIE =
   "user_access_token";
 
