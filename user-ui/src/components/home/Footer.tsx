@@ -38,10 +38,10 @@ const accountLinks = [
     label: "Cart",
     href: "/cart",
   },
-  {
-    label: "Orders",
-    href: "/orders",
-  },
+ {
+  label: "Orders",
+  href: "/profile/orders",
+},
 ];
 
 const supportLinks = [
