@@ -1,5 +1,4 @@
 import {
-  // BarChart3, 
   CreditCard,
   LayoutDashboard,
   LogOut,
@@ -8,7 +7,6 @@ import {
   ShoppingCart,
   Star,
   TicketPercent,
-  Users,
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -28,11 +26,6 @@ export const sidebarItems = [
     icon: ShoppingCart,
   },
   {
-    title: "Customers",
-    href: "/dashboard/customers",
-    icon: Users,
-  },
-  {
     title: "Coupons",
     href: "/dashboard/coupons",
     icon: TicketPercent,
@@ -42,11 +35,6 @@ export const sidebarItems = [
     href: "/dashboard/payments",
     icon: CreditCard,
   },
-  // {
-  //   title: "Analytics",
-  //   href: "/dashboard/analytics",
-  //   icon: BarChart3,
-  // },
   {
     title: "Reviews",
     href: "/dashboard/reviews",
