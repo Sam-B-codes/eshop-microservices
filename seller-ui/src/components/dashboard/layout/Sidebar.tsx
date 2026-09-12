@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ShieldCheck,
   Store,
+  X,
 } from "lucide-react";
 
 import SidebarItem from "./SidebarItem";
@@ -21,11 +22,15 @@ import { useSeller } from "@/hooks/useSeller";
 interface SidebarProps {
   collapsed?: boolean;
   onCollapse?: () => void;
+  onMobileClose?: () => void;
+  onNavigate?: () => void;
 }
 
 export default function Sidebar({
   collapsed = false,
   onCollapse,
+  onMobileClose,
+  onNavigate,
 }: SidebarProps) {
   const {
     seller,
@@ -57,11 +62,12 @@ export default function Sidebar({
 
   return (
     <aside
+      aria-label="Seller dashboard navigation"
       className={clsx(
-        "relative flex h-dvh shrink-0 flex-col overflow-hidden border-r border-white/[0.06] bg-[#0b1220] transition-[width] duration-300 ease-in-out",
+        "relative flex h-dvh w-[280px] max-w-[86vw] shrink-0 flex-col overflow-hidden border-r border-white/[0.06] bg-[#0b1220] shadow-[18px_0_50px_rgba(0,0,0,0.3)] transition-[width] duration-300 ease-in-out lg:max-w-none lg:shadow-none",
         collapsed
-          ? "w-[88px]"
-          : "w-[264px]"
+          ? "lg:w-[88px]"
+          : "lg:w-[264px]"
       )}
     >
       {/* ===============================================
@@ -78,7 +84,7 @@ export default function Sidebar({
       </div>
 
       {/* ===============================================
-          COLLAPSE BUTTON
+          DESKTOP COLLAPSE BUTTON
       ================================================ */}
 
       {onCollapse && (
@@ -104,6 +110,24 @@ export default function Sidebar({
       )}
 
       {/* ===============================================
+          MOBILE CLOSE BUTTON
+      ================================================ */}
+
+      {onMobileClose && (
+        <button
+          type="button"
+          onClick={onMobileClose}
+          aria-label="Close navigation menu"
+          className="absolute right-4 top-[18px] z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.05] text-slate-400 transition hover:bg-white/[0.1] hover:text-white lg:hidden"
+        >
+          <X
+            className="h-5 w-5"
+            strokeWidth={1.8}
+          />
+        </button>
+      )}
+
+      {/* ===============================================
           BRAND
       ================================================ */}
 
@@ -111,18 +135,18 @@ export default function Sidebar({
         className={clsx(
           "relative z-10 flex h-[76px] shrink-0 items-center border-b border-white/[0.05]",
           collapsed
-            ? "justify-center px-3"
+            ? "px-5 lg:justify-center lg:px-3"
             : "px-5"
         )}
       >
         <Link
           href="/dashboard"
+          onClick={onNavigate}
           aria-label="Eshop Seller Dashboard"
           className={clsx(
-            "flex min-w-0 items-center",
-            collapsed
-              ? "justify-center"
-              : "gap-3"
+            "flex min-w-0 items-center gap-3",
+            collapsed &&
+              "lg:justify-center lg:gap-0"
           )}
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white text-[#0b1220] shadow-sm">
@@ -132,17 +156,21 @@ export default function Sidebar({
             />
           </div>
 
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-[17px] font-semibold tracking-[-0.03em] text-white">
-                Eshop
-              </p>
+          <div
+            className={clsx(
+              "min-w-0",
+              collapsed &&
+                "lg:hidden"
+            )}
+          >
+            <p className="text-[17px] font-semibold tracking-[-0.03em] text-white">
+              Eshop
+            </p>
 
-              <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-600">
-                Seller Center
-              </p>
-            </div>
-          )}
+            <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+              Seller Center
+            </p>
+          </div>
         </Link>
       </div>
 
@@ -152,78 +180,77 @@ export default function Sidebar({
 
       <div
         className={clsx(
-          "relative z-10 shrink-0 transition-all duration-300",
-          collapsed
-            ? "px-3 pb-3 pt-4"
-            : "px-4 pb-3 pt-4"
+          "relative z-10 shrink-0 px-4 pb-3 pt-4 transition-all duration-300",
+          collapsed &&
+            "lg:px-3"
         )}
       >
-        {collapsed ? (
-          <div
-            className="group relative flex justify-center"
-            title={
-              loading
-                ? "Loading seller..."
-                : sellerName
-            }
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-xs font-bold text-white">
-              {loading
-                ? "..."
-                : initials}
-            </div>
-
-            {/* Collapsed tooltip */}
-
-            {!loading && (
-              <div className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 z-[70] hidden -translate-y-1/2 whitespace-nowrap rounded-xl border border-white/[0.08] bg-[#111827] px-3 py-2 shadow-xl group-hover:block">
-                <p className="text-xs font-semibold text-white">
-                  {sellerName}
-                </p>
-
-                <p className="mt-0.5 text-[10px] text-slate-500">
-                  {shopName}
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-xs font-bold text-[#0b1220]">
+        <div
+          className={clsx(
+            collapsed
+              ? "hidden lg:block"
+              : "block"
+          )}
+        >
+          {collapsed ? (
+            <div
+              className="group relative flex justify-center"
+              title={
+                loading
+                  ? "Loading seller..."
+                  : sellerName
+              }
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-xs font-bold text-white">
                 {loading
                   ? "..."
                   : initials}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-100">
-                  {loading
-                    ? "Loading..."
-                    : sellerName}
-                </p>
+              {!loading && (
+                <div className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 z-[70] hidden -translate-y-1/2 whitespace-nowrap rounded-xl border border-white/[0.08] bg-[#111827] px-3 py-2 shadow-xl group-hover:block">
+                  <p className="text-xs font-semibold text-white">
+                    {sellerName}
+                  </p>
 
-                <p className="mt-0.5 truncate text-[11px] text-slate-500">
-                  {loading
-                    ? "Seller account"
-                    : shopName}
-                </p>
-              </div>
-            </div>
-
-            {!loading &&
-              seller?.isOnboarded && (
-                <div className="mt-3 flex items-center gap-1.5 border-t border-white/[0.05] pt-3">
-                  <ShieldCheck
-                    className="h-3.5 w-3.5 text-emerald-400"
-                    strokeWidth={1.8}
-                  />
-
-                  <span className="text-[10px] font-medium text-emerald-400">
-                    Verified seller
-                  </span>
+                  <p className="mt-0.5 text-[10px] text-slate-500">
+                    {shopName}
+                  </p>
                 </div>
               )}
+            </div>
+          ) : (
+            <SellerCard
+              loading={loading}
+              initials={initials}
+              sellerName={
+                sellerName
+              }
+              shopName={shopName}
+              verified={
+                Boolean(
+                  seller?.isOnboarded
+                )
+              }
+            />
+          )}
+        </div>
+
+        {collapsed && (
+          <div className="lg:hidden">
+            <SellerCard
+              loading={loading}
+              initials={initials}
+              sellerName={
+                sellerName
+              }
+              shopName={shopName}
+              verified={
+                Boolean(
+                  seller?.isOnboarded
+                )
+              }
+            />
           </div>
         )}
       </div>
@@ -233,18 +260,21 @@ export default function Sidebar({
       ================================================ */}
 
       <nav
-  className={clsx(
-    "relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
-    collapsed
-      ? "px-3"
-      : "px-4"
-  )}
->
-        {!collapsed && (
-          <p className="mb-2 px-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-700">
-            Workspace
-          </p>
+        className={clsx(
+          "relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+          collapsed &&
+            "lg:px-3"
         )}
+      >
+        <p
+          className={clsx(
+            "mb-2 px-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-700",
+            collapsed &&
+              "lg:hidden"
+          )}
+        >
+          Workspace
+        </p>
 
         <div className="space-y-1">
           {sidebarItems.map(
@@ -256,6 +286,9 @@ export default function Sidebar({
                 {...item}
                 collapsed={
                   collapsed
+                }
+                onClick={
+                  onNavigate
                 }
               />
             )
@@ -269,24 +302,88 @@ export default function Sidebar({
 
       <div
         className={clsx(
-          "relative z-10 shrink-0 border-t border-white/[0.06] py-3",
-          collapsed
-            ? "px-3"
-            : "px-4"
+          "relative z-10 shrink-0 border-t border-white/[0.06] px-4 py-3",
+          collapsed &&
+            "lg:px-3"
         )}
       >
         <SidebarItem
           {...logoutItem}
           collapsed={collapsed}
           danger
+          onClick={onNavigate}
         />
 
-        {!collapsed && (
-          <p className="mt-3 px-3 text-[9px] tracking-wide text-slate-700">
-            Eshop Seller Center
-          </p>
-        )}
+        <p
+          className={clsx(
+            "mt-3 px-3 text-[9px] tracking-wide text-slate-700",
+            collapsed &&
+              "lg:hidden"
+          )}
+        >
+          Eshop Seller Center
+        </p>
       </div>
     </aside>
+  );
+}
+
+// ======================================================
+// SELLER CARD
+// ======================================================
+
+interface SellerCardProps {
+  loading: boolean;
+  initials: string;
+  sellerName: string;
+  shopName: string;
+  verified: boolean;
+}
+
+function SellerCard({
+  loading,
+  initials,
+  sellerName,
+  shopName,
+  verified,
+}: SellerCardProps) {
+  return (
+    <div className="rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-3">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-xs font-bold text-[#0b1220]">
+          {loading
+            ? "..."
+            : initials}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-slate-100">
+            {loading
+              ? "Loading..."
+              : sellerName}
+          </p>
+
+          <p className="mt-0.5 truncate text-[11px] text-slate-500">
+            {loading
+              ? "Seller account"
+              : shopName}
+          </p>
+        </div>
+      </div>
+
+      {!loading &&
+        verified && (
+          <div className="mt-3 flex items-center gap-1.5 border-t border-white/[0.05] pt-3">
+            <ShieldCheck
+              className="h-3.5 w-3.5 text-emerald-400"
+              strokeWidth={1.8}
+            />
+
+            <span className="text-[10px] font-medium text-emerald-400">
+              Verified seller
+            </span>
+          </div>
+        )}
+    </div>
   );
 }
