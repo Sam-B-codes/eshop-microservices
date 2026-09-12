@@ -259,7 +259,7 @@ export const createRazorpayOrder =
       });
 
     console.log(
-      `ðŸ’³ Razorpay order ${razorpayOrder.id} created for internal order ${order.id}`
+      `[PAYMENT] Razorpay order ${razorpayOrder.id} created for internal order ${order.id}`
     );
 
     return {
@@ -379,9 +379,6 @@ const finalizePaidOrder =
 
         // ==============================================
         // SELLER ORDERS AND SETTLEMENTS
-        //
-        // Both records use upsert operations, making
-        // payment-verification retries idempotent.
         // ==============================================
 
         for (
@@ -466,11 +463,7 @@ const finalizePaidOrder =
             });
 
           // --------------------------------------------
-          // CREATE OR REUSE INTERNAL SETTLEMENT
-          //
-          // Pricing values are immutable after creation.
-          // A retry only restores authoritative payment
-          // reference information.
+          // CREATE OR REUSE SELLER SETTLEMENT
           // --------------------------------------------
 
           await tx.sellerSettlement.upsert({
@@ -533,10 +526,6 @@ const finalizePaidOrder =
 
         // ==============================================
         // FULFILMENT IDEMPOTENCY
-        //
-        // SellerOrder and SellerSettlement upserts above
-        // are safe on every retry. Inventory, coupon and
-        // cart operations below must happen only once.
         // ==============================================
 
         if (
@@ -661,7 +650,7 @@ const finalizePaidOrder =
             couponUpdate.count === 0
           ) {
             console.warn(
-              `âš ï¸ Coupon usage could not be incremented for order ${order.id}`
+              `[PAYMENT] Coupon usage could not be incremented for order ${order.id}`
             );
           }
         }
@@ -766,6 +755,10 @@ const finalizePaidOrder =
           });
 
         return finalizedOrder;
+      },
+      {
+        maxWait: 10_000,
+        timeout: 30_000,
       }
     );
   };
@@ -917,9 +910,6 @@ export const verifyRazorpayPayment =
 
     // ==================================================
     // COMPLETELY PROCESSED ORDER
-    //
-    // Calling finalization again safely backfills any
-    // missing SellerOrder or SellerSettlement records.
     // ==================================================
 
     if (
@@ -947,7 +937,7 @@ export const verifyRazorpayPayment =
       }
 
       throw new BadRequestError(
-        "This order has already been paid"
+        "This order has already been paid using another payment"
       );
     }
 
@@ -978,12 +968,12 @@ export const verifyRazorpayPayment =
 
     if (!razorpayPayment) {
       throw new BadRequestError(
-        "Unable to verify Razorpay payment"
+        "Unable to fetch Razorpay payment"
       );
     }
 
     // ==================================================
-    // PROVIDER ORDER CHECK
+    // PROVIDER ORDER
     // ==================================================
 
     if (
@@ -996,7 +986,7 @@ export const verifyRazorpayPayment =
     }
 
     // ==================================================
-    // CURRENCY CHECK
+    // CURRENCY
     // ==================================================
 
     if (
@@ -1004,12 +994,12 @@ export const verifyRazorpayPayment =
       "INR"
     ) {
       throw new BadRequestError(
-        "Payment currency does not match the order"
+        "Invalid payment currency"
       );
     }
 
     // ==================================================
-    // AMOUNT CHECK
+    // AMOUNT
     // ==================================================
 
     const expectedAmount =
@@ -1027,12 +1017,12 @@ export const verifyRazorpayPayment =
       expectedAmount
     ) {
       throw new BadRequestError(
-        "Payment amount does not match the order total"
+        "Payment amount does not match the order"
       );
     }
 
     // ==================================================
-    // PROVIDER STATUS
+    // PAYMENT STATUS
     // ==================================================
 
     const providerStatus =
@@ -1061,7 +1051,7 @@ export const verifyRazorpayPayment =
       );
 
     console.log(
-      `âœ… Razorpay payment ${razorpayPaymentId} verified and order ${order.id} fulfilled`
+      `[PAYMENT] Razorpay payment ${razorpayPaymentId} verified and order ${order.id} fulfilled`
     );
 
     return {
