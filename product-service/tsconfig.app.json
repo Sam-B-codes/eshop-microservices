@@ -29,6 +29,9 @@
     },
     {
       "path": "../libs/tsconfig.lib.json"
+    },
+    {
+      "path": "../notification-client/tsconfig.lib.json"
     }
   ]
 }

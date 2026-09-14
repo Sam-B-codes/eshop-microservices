@@ -15,6 +15,10 @@ import {
   UpdateSellerOrderStatusInput,
 } from "../types/order.types";
 
+import {
+  sendOrderStatusNotification,
+} from "../utils/order-notification.helper";
+
 // ======================================================
 // HELPERS
 // ======================================================
@@ -24,7 +28,8 @@ const roundMoney = (
 ): number => {
   return (
     Math.round(
-      (value + Number.EPSILON) * 100
+      (value + Number.EPSILON) *
+        100
     ) / 100
   );
 };
@@ -32,7 +37,8 @@ const roundMoney = (
 const normalizeString = (
   value: unknown
 ): string => {
-  return typeof value === "string"
+  return typeof value ===
+    "string"
     ? value.trim()
     : "";
 };
@@ -45,7 +51,9 @@ const verifySeller = async (
   sellerId: string
 ): Promise<string> => {
   const normalizedSellerId =
-    normalizeString(sellerId);
+    normalizeString(
+      sellerId
+    );
 
   if (!normalizedSellerId) {
     throw new BadRequestError(
@@ -56,7 +64,8 @@ const verifySeller = async (
   const seller =
     await prisma.sellers.findUnique({
       where: {
-        id: normalizedSellerId,
+        id:
+          normalizedSellerId,
       },
 
       select: {
@@ -75,114 +84,114 @@ const verifySeller = async (
 
 // ======================================================
 // BACKFILL MISSING SELLER ORDERS
-//
-// This creates SellerOrder records for paid orders that
-// existed before the SellerOrder model was introduced.
-//
-// Existing fulfilment statuses are never reset.
 // ======================================================
 
-const ensureSellerOrders = async (
-  sellerId: string
-): Promise<void> => {
-  const paidOrders =
-    await prisma.order.findMany({
-      where: {
-        paymentStatus: "PAID",
+const ensureSellerOrders =
+  async (
+    sellerId: string
+  ): Promise<void> => {
+    const paidOrders =
+      await prisma.order.findMany({
+        where: {
+          paymentStatus:
+            "PAID",
 
-        items: {
-          some: {
-            sellerId,
+          items: {
+            some: {
+              sellerId,
+            },
           },
         },
-      },
 
-      select: {
-        id: true,
-        couponSellerId: true,
-        couponDiscount: true,
+        select: {
+          id: true,
+          couponSellerId: true,
+          couponDiscount: true,
 
-        items: {
-          where: {
-            sellerId,
-          },
+          items: {
+            where: {
+              sellerId,
+            },
 
-          select: {
-            lineTotal: true,
+            select: {
+              lineTotal: true,
+            },
           },
         },
-      },
-    });
+      });
 
-  for (const order of paidOrders) {
-    const subtotal =
-      roundMoney(
-        order.items.reduce(
-          (
-            total,
-            item
-          ) =>
-            total +
-            item.lineTotal,
-          0
-        )
-      );
-
-    const discount =
-      order.couponSellerId ===
-      sellerId
-        ? roundMoney(
-            Math.min(
-              Math.max(
-                order.couponDiscount,
-                0
-              ),
-              subtotal
-            )
+    for (
+      const order of
+      paidOrders
+    ) {
+      const subtotal =
+        roundMoney(
+          order.items.reduce(
+            (
+              total,
+              item
+            ) =>
+              total +
+              item.lineTotal,
+            0
           )
-        : 0;
+        );
 
-    const totalAmount =
-      roundMoney(
-        Math.max(
-          subtotal -
-            discount,
-          0
-        )
-      );
+      const discount =
+        order.couponSellerId ===
+        sellerId
+          ? roundMoney(
+              Math.min(
+                Math.max(
+                  order.couponDiscount,
+                  0
+                ),
+                subtotal
+              )
+            )
+          : 0;
 
-    await prisma.sellerOrder.upsert({
-      where: {
-        orderId_sellerId: {
+      const totalAmount =
+        roundMoney(
+          Math.max(
+            subtotal -
+              discount,
+            0
+          )
+        );
+
+      await prisma.sellerOrder.upsert({
+        where: {
+          orderId_sellerId: {
+            orderId:
+              order.id,
+
+            sellerId,
+          },
+        },
+
+        create: {
           orderId:
             order.id,
 
           sellerId,
+
+          status:
+            "CONFIRMED",
+
+          subtotal,
+          discount,
+          totalAmount,
         },
-      },
 
-      create: {
-        orderId:
-          order.id,
-
-        sellerId,
-
-        status:
-          "CONFIRMED",
-
-        subtotal,
-        discount,
-        totalAmount,
-      },
-
-      update: {
-        subtotal,
-        discount,
-        totalAmount,
-      },
-    });
-  }
-};
+        update: {
+          subtotal,
+          discount,
+          totalAmount,
+        },
+      });
+    }
+  };
 
 // ======================================================
 // MAP SELLER ORDER
@@ -284,10 +293,10 @@ const mapSellerOrder = (
       sellerOrder.deliveredAt,
 
     createdAt:
-    order.createdAt,
+      order.createdAt,
 
     updatedAt:
-    sellerOrder.updatedAt,
+      sellerOrder.updatedAt,
 
     items,
   };
@@ -300,8 +309,11 @@ const mapSellerOrder = (
 export const getSellerOrders =
   async (
     sellerId: string,
-    query: SellerOrderListQuery = {}
-  ): Promise<SellerOrderListResult> => {
+    query:
+      SellerOrderListQuery = {}
+  ): Promise<
+    SellerOrderListResult
+  > => {
     const verifiedSellerId =
       await verifySeller(
         sellerId
@@ -312,10 +324,14 @@ export const getSellerOrders =
     );
 
     const requestedPage =
-      Number(query.page);
+      Number(
+        query.page
+      );
 
     const requestedLimit =
-      Number(query.limit);
+      Number(
+        query.limit
+      );
 
     const page =
       Number.isInteger(
@@ -433,41 +449,43 @@ export const getSellerOrders =
     const [
       totalOrders,
       sellerOrders,
-    ] = await prisma.$transaction([
-      prisma.sellerOrder.count({
-        where,
-      }),
+    ] =
+      await prisma.$transaction([
+        prisma.sellerOrder.count({
+          where,
+        }),
 
-      prisma.sellerOrder.findMany({
-        where,
+        prisma.sellerOrder.findMany({
+          where,
 
-        skip,
-        take: limit,
+          skip,
+          take:
+            limit,
 
-        orderBy: {
-          createdAt:
-            "desc",
-        },
+          orderBy: {
+            createdAt:
+              "desc",
+          },
 
-        include: {
-          order: {
-            include: {
-              items: {
-                where: {
-                  sellerId:
-                    verifiedSellerId,
-                },
+          include: {
+            order: {
+              include: {
+                items: {
+                  where: {
+                    sellerId:
+                      verifiedSellerId,
+                  },
 
-                orderBy: {
-                  createdAt:
-                    "asc",
+                  orderBy: {
+                    createdAt:
+                      "asc",
+                  },
                 },
               },
             },
           },
-        },
-      }),
-    ]);
+        }),
+      ]);
 
     const orders =
       sellerOrders.map(
@@ -509,7 +527,9 @@ export const getSellerOrderDetails =
   async (
     sellerId: string,
     orderId: string
-  ): Promise<SellerOrderDetails> => {
+  ): Promise<
+    SellerOrderDetails
+  > => {
     const verifiedSellerId =
       await verifySeller(
         sellerId
@@ -707,7 +727,9 @@ const synchronizeGlobalOrderStatus =
 
     const statuses =
       sellerOrders.map(
-        (sellerOrder) =>
+        (
+          sellerOrder
+        ) =>
           sellerOrder.status
       );
 
@@ -755,7 +777,8 @@ const synchronizeGlobalOrderStatus =
 
     await prisma.order.update({
       where: {
-        id: orderId,
+        id:
+          orderId,
       },
 
       data: {
@@ -773,7 +796,8 @@ export const updateSellerOrderStatus =
   async (
     sellerId: string,
     orderId: string,
-    input: UpdateSellerOrderStatusInput
+    input:
+      UpdateSellerOrderStatusInput
   ) => {
     const verifiedSellerId =
       await verifySeller(
@@ -920,6 +944,10 @@ export const updateSellerOrderStatus =
       sellerOrder.orderId
     );
 
+    await sendOrderStatusNotification(
+      updatedSellerOrder.id
+    );
+
     return updatedSellerOrder;
   };
 
@@ -930,8 +958,11 @@ export const updateSellerOrderStatus =
 export const getSellerRevenueSummary =
   async (
     sellerId: string,
-    query: SellerRevenueSummaryQuery = {}
-  ): Promise<SellerRevenueSummary> => {
+    query:
+      SellerRevenueSummaryQuery = {}
+  ): Promise<
+    SellerRevenueSummary
+  > => {
     const verifiedSellerId =
       await verifySeller(
         sellerId
@@ -986,7 +1017,9 @@ export const getSellerRevenueSummary =
 
     const paidOrders =
       sellerOrders.filter(
-        (sellerOrder) =>
+        (
+          sellerOrder
+        ) =>
           sellerOrder.order
             .paymentStatus ===
           "PAID"
@@ -994,7 +1027,9 @@ export const getSellerRevenueSummary =
 
     const refundedOrders =
       sellerOrders.filter(
-        (sellerOrder) =>
+        (
+          sellerOrder
+        ) =>
           sellerOrder.order
             .paymentStatus ===
           "REFUNDED"
@@ -1053,10 +1088,13 @@ export const getSellerRevenueSummary =
       );
 
     const countStatus = (
-      status: SellerOrderStatus
+      status:
+        SellerOrderStatus
     ): number => {
       return paidOrders.filter(
-        (sellerOrder) =>
+        (
+          sellerOrder
+        ) =>
           sellerOrder.status ===
           status
       ).length;

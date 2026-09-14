@@ -16,6 +16,11 @@ import {
   AuthRequest,
 } from "../middleware/auth.middleware";
 
+import {
+  sendNewReviewNotification,
+  sendSellerReplyNotification,
+} from "../utils/review-notification.helper";
+
 // ======================================================
 // HELPERS
 // ======================================================
@@ -451,39 +456,45 @@ export const createReview =
       }
 
       const review =
-        await prisma.review.create({
-          data: {
-            userId:
-              user.id,
+  await prisma.review.create({
+    data: {
+      userId:
+        user.id,
 
-            productId,
+      productId,
 
-            sellerId:
-              product.sellerId,
+      sellerId:
+        product.sellerId,
 
-            orderId:
-              eligibleOrder.id,
+      orderId:
+        eligibleOrder.id,
 
-            rating,
-            title,
-            comment,
+      rating,
+      title,
+      comment,
 
-            status:
-              "PUBLISHED",
-          },
+      status:
+        "PUBLISHED",
+    },
 
-          include:
-            reviewInclude,
-        });
+    include:
+      reviewInclude,
+  });
 
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message:
-            "Review published successfully",
-          review,
-        });
+await sendNewReviewNotification(
+  review.id
+);
+
+return res
+  .status(201)
+  .json({
+    success: true,
+    message:
+      "Review published successfully",
+    review,
+  });
+
+     
     } catch (error) {
       return next(error);
     }
@@ -1155,31 +1166,35 @@ export const updateSellerReply =
       }
 
       const review =
-        await prisma.review.update({
-          where: {
-            id: reviewId,
-          },
+  await prisma.review.update({
+    where: {
+      id: reviewId,
+    },
 
-          data: {
-            sellerReply:
-              reply,
+    data: {
+      sellerReply:
+        reply,
 
-            sellerRepliedAt:
-              new Date(),
-          },
+      sellerRepliedAt:
+        new Date(),
+    },
 
-          include:
-            reviewInclude,
-        });
+    include:
+      reviewInclude,
+  });
 
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message:
-            "Reply saved successfully",
-          review,
-        });
+await sendSellerReplyNotification(
+  review.id
+);
+
+return res
+  .status(200)
+  .json({
+    success: true,
+    message:
+      "Reply saved successfully",
+    review,
+  });
     } catch (error) {
       return next(error);
     }

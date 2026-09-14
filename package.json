@@ -134,6 +134,8 @@
     "payment-service",
     "payment-service-e2e",
     "admin-ui",
-    "admin-service"
+    "admin-service",
+    "notification-service",
+    "notification-client"
   ]
 }

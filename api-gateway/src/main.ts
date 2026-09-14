@@ -80,6 +80,13 @@ const ADMIN_SERVICE_URL =
     "http://localhost:6007"
   );
 
+const NOTIFICATION_SERVICE_URL =
+  normalizeUrl(
+    process.env
+      .NOTIFICATION_SERVICE_URL,
+    "http://localhost:6008"
+  );
+
 // ======================================================
 // CORS ORIGINS
 // ======================================================
@@ -124,9 +131,9 @@ app.use(
       callback
     ) {
       /*
-       * Requests without an Origin
-       * include server-to-server calls,
-       * health checks and API clients.
+       * Requests without an Origin include
+       * server-to-server calls, health checks
+       * and API clients.
        */
       if (!origin) {
         callback(
@@ -243,7 +250,9 @@ const limiter =
       ),
   });
 
-app.use(limiter);
+app.use(
+  limiter
+);
 
 // ======================================================
 // HEALTH CHECK
@@ -251,21 +260,26 @@ app.use(limiter);
 
 app.get(
   "/gateway-health",
-  (_req, res) => {
-    res.status(200).json({
-      success: true,
+  (
+    _req,
+    res
+  ) => {
+    return res
+      .status(200)
+      .json({
+        success: true,
 
-      service:
-        "API Gateway",
+        service:
+          "API Gateway",
 
-      message:
-        "Gateway is running successfully",
+        message:
+          "Gateway is running successfully",
 
-      environment:
-        isProduction
-          ? "production"
-          : "development",
-    });
+        environment:
+          isProduction
+            ? "production"
+            : "development",
+      });
   }
 );
 
@@ -280,8 +294,7 @@ const createServiceProxy = (
     /*
      * Preserve the complete route.
      * Example:
-     * /api/products remains
-     * /api/products downstream.
+     * /api/products remains /api/products downstream.
      */
     proxyReqPathResolver(
       req
@@ -435,6 +448,44 @@ app.use(
 );
 
 // ======================================================
+// BLOCK INTERNAL NOTIFICATION API
+// ======================================================
+//
+// Backend services must call the Notification Service
+// directly. The trusted internal endpoint is not exposed
+// through the public API Gateway.
+//
+// ======================================================
+
+app.use(
+  "/api/notifications/internal",
+  (
+    _req,
+    res
+  ) => {
+    return res
+      .status(404)
+      .json({
+        success: false,
+        message:
+          "Route not found",
+      });
+  }
+);
+
+// ======================================================
+// NOTIFICATION SERVICE
+// ======================================================
+
+app.use(
+  "/api/notifications",
+
+  createServiceProxy(
+    NOTIFICATION_SERVICE_URL
+  )
+);
+
+// ======================================================
 // AUTH SERVICE FALLBACK
 // ======================================================
 //
@@ -505,27 +556,31 @@ if (
         );
 
         console.log(
-          `   Auth    → ${AUTH_SERVICE_URL}`
+          `   Auth         → ${AUTH_SERVICE_URL}`
         );
 
         console.log(
-          `   Product → ${PRODUCT_SERVICE_URL}`
+          `   Product      → ${PRODUCT_SERVICE_URL}`
         );
 
         console.log(
-          `   Coupon  → ${COUPON_SERVICE_URL}`
+          `   Coupon       → ${COUPON_SERVICE_URL}`
         );
 
         console.log(
-          `   Order   → ${ORDER_SERVICE_URL}`
+          `   Order        → ${ORDER_SERVICE_URL}`
         );
 
         console.log(
-          `   Payment → ${PAYMENT_SERVICE_URL}`
+          `   Payment      → ${PAYMENT_SERVICE_URL}`
         );
 
         console.log(
-          `   Admin   → ${ADMIN_SERVICE_URL}`
+          `   Admin        → ${ADMIN_SERVICE_URL}`
+        );
+
+        console.log(
+          `   Notification → ${NOTIFICATION_SERVICE_URL}`
         );
 
         console.log(

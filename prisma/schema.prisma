@@ -628,3 +628,49 @@ enum SettlementStatus {
   SETTLED
   FAILED
 }
+
+// ======================================================
+// NOTIFICATION
+// ======================================================
+
+model Notification {
+  id            String                    @id @default(auto()) @map("_id") @db.ObjectId
+  recipientId   String                    @db.ObjectId
+  recipientRole NotificationRecipientRole
+  type          NotificationType
+
+  title     String
+  message   String
+  actionUrl String?
+  metadata  Json?
+
+  idempotencyKey String @unique
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recipientId, recipientRole, createdAt])
+  @@index([recipientId, recipientRole, isRead])
+}
+
+// ======================================================
+// NOTIFICATION ENUMS
+// ======================================================
+
+enum NotificationRecipientRole {
+  USER
+  SELLER
+  ADMIN
+}
+
+enum NotificationType {
+  PAYMENT_SUCCESS
+  NEW_PAID_ORDER
+  ORDER_STATUS_UPDATED
+  NEW_REVIEW
+  SELLER_REPLY
+  PAYMENT_RECEIVED
+}

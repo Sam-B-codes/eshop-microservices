@@ -12,7 +12,6 @@ import {
   LogOut,
   Menu,
   Settings,
-
 } from "lucide-react";
 
 import {
@@ -22,6 +21,8 @@ import {
 import {
   toast,
 } from "sonner";
+
+import SellerNotificationBell from "@/components/notifications/SellerNotificationBell";
 
 import {
   useSellerContext,
@@ -256,14 +257,18 @@ export default function Header({
         {/* RIGHT */}
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {/* NOTIFICATIONS */}
+
+          <SellerNotificationBell />
+
+          {/* ACCOUNT */}
+
           <div
             ref={
               dropdownRef
             }
             className="relative"
           >
-            {/* ACCOUNT BUTTON */}
-
             <button
               type="button"
               onClick={() =>
@@ -312,7 +317,7 @@ export default function Header({
               />
             </button>
 
-            {/* DROPDOWN */}
+            {/* ACCOUNT DROPDOWN */}
 
             <div
               role="menu"
@@ -369,8 +374,6 @@ export default function Header({
               {/* ACCOUNT MENU */}
 
               <div className="p-2">
-               
-
                 <button
                   type="button"
                   role="menuitem"

@@ -91,7 +91,8 @@
                                                              "excludeFromExternal":  [
                                                                                          "@org/error-handler",
                                                                                          "@org/prisma",
-                                                                                         "@org/redis"
+                                                                                         "@org/redis",
+                                                                                         "@org/notification-client"
                                                                                      ],
                                                              "esbuildOptions":  {
                                                                                     "sourcemap":  true,
@@ -120,7 +121,8 @@
     "dependencies":  {
                          "express":  "^5.1.0",
                          "swagger-jsdoc":  "^6.3.0",
-                         "swagger-ui-express":  "^5.0.1"
+                         "swagger-ui-express":  "^5.0.1",
+                         "@org/notification-client": "*"
                      },
     "devDependencies":  {
                             "@types/swagger-jsdoc":  "^6.0.4",

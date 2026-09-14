@@ -91,7 +91,8 @@
                                                              "excludeFromExternal":  [
                                                                                          "@org/error-handler",
                                                                                          "@org/prisma",
-                                                                                         "@org/redis"
+                                                                                         "@org/redis",
+                                                                                         "@org/notification-client"
                                                                                      ],
                                                              "esbuildOptions":  {
                                                                                     "sourcemap":  true,
@@ -118,6 +119,7 @@
                            }
            },
     "dependencies":  {
-                         "express":  "^5.1.0"
+                         "express":  "^5.1.0",
+                         "@org/notification-client": "*"
                      }
 }
