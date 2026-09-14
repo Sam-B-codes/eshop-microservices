@@ -4,7 +4,7 @@
   "installCommand": "npm install --include=dev --prefix=..",
   "buildCommand": "cd .. && npx --no-install prisma generate --schema=prisma/schema.prisma && npx --no-install nx build @org/notification-service --configuration=production --skip-nx-cache",
   "functions": {
-    "src/index.js": {
+    "src/index.ts": {
       "includeFiles": "dist/**",
       "maxDuration": 60
     }

@@ -1,16 +1,16 @@
 {
   "extends": "../tsconfig.base.json",
+  "compileOnSave": false,
   "compilerOptions": {
     "noEmit": false,
-    "declaration": false,
+    "declaration": true,
     "emitDeclarationOnly": false
   },
+  "files": [],
+  "include": [],
   "references": [
     {
-      "path": "../prisma"
-    },
-    {
-      "path": "../libs"
+      "path": "./tsconfig.app.json"
     }
   ]
 }
