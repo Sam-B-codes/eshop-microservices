@@ -2,6 +2,7 @@ import {
   CreditCard,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   Package,
   Settings,
   ShoppingCart,
@@ -11,44 +12,101 @@ import {
 
 export const sidebarItems = [
   {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
+    title:
+      "Dashboard",
+
+    href:
+      "/dashboard",
+
+    icon:
+      LayoutDashboard,
   },
+
   {
-    title: "Products",
-    href: "/dashboard/products",
-    icon: Package,
+    title:
+      "Products",
+
+    href:
+      "/dashboard/products",
+
+    icon:
+      Package,
   },
+
   {
-    title: "Orders",
-    href: "/dashboard/orders",
-    icon: ShoppingCart,
+    title:
+      "Orders",
+
+    href:
+      "/dashboard/orders",
+
+    icon:
+      ShoppingCart,
   },
+
   {
-    title: "Coupons",
-    href: "/dashboard/coupons",
-    icon: TicketPercent,
+    title:
+      "Messages",
+
+    href:
+      "/dashboard/messages",
+
+    icon:
+      MessageCircle,
   },
+
   {
-    title: "Payments",
-    href: "/dashboard/payments",
-    icon: CreditCard,
+    title:
+      "Coupons",
+
+    href:
+      "/dashboard/coupons",
+
+    icon:
+      TicketPercent,
   },
+
   {
-    title: "Reviews",
-    href: "/dashboard/reviews",
-    icon: Star,
+    title:
+      "Payments",
+
+    href:
+      "/dashboard/payments",
+
+    icon:
+      CreditCard,
   },
+
   {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
+    title:
+      "Reviews",
+
+    href:
+      "/dashboard/reviews",
+
+    icon:
+      Star,
+  },
+
+  {
+    title:
+      "Settings",
+
+    href:
+      "/dashboard/settings",
+
+    icon:
+      Settings,
   },
 ];
 
 export const logoutItem = {
-  title: "Logout",
-  href: "/login",
-  icon: LogOut,
+  title:
+    "Logout",
+
+  href:
+    "/login",
+
+  icon:
+    LogOut,
 };

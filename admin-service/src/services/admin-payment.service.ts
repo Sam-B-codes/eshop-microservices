@@ -10,6 +10,10 @@ import {
   AdminPaymentSummary,
 } from "../types/admin-payment.types";
 
+import {
+  sendSellerSettlementNotification,
+} from "./admin-notification.service";
+
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 
@@ -377,6 +381,29 @@ export const updateAdminSettlementStatus = async (
       },
     },
   });
+
+  if (
+  updated.status ===
+  "SETTLED"
+) {
+  await sendSellerSettlementNotification({
+    settlementId:
+      updated.id,
+
+    orderId:
+      updated.orderId,
+
+    sellerId:
+      updated.sellerId,
+
+    sellerEarnings:
+      updated.sellerEarnings,
+
+    currency:
+      updated.currency,
+  });
+}
+
 
   return {
     success: true,

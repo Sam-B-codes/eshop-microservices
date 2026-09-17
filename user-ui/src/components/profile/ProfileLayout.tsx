@@ -11,6 +11,7 @@ import {
   Heart,
   LayoutDashboard,
   Loader2,
+    MessageCircle,
   Package,
   Settings,
   UserRound,
@@ -40,6 +41,11 @@ const accountLinks = [
     href: "/profile/orders",
     icon: Package,
   },
+  {
+  label: "Messages",
+  href: "/profile/messages",
+  icon: MessageCircle,
+},
   {
     label: "Wishlist",
     href: "/wishlist",

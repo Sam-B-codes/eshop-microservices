@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   CalendarDays,
   Check,
-    Star,
   Clock3,
   Copy,
   CreditCard,
@@ -27,9 +26,11 @@ import {
   ReceiptText,
   RefreshCw,
   ShoppingBag,
+  Star,
   Store,
- 
 } from "lucide-react";
+
+import ContactSellerButton from "@/components/chat/ContactSellerButton";
 
 import {
   getOrderById,
@@ -432,15 +433,21 @@ export default function UserOrderDetails({
           {sellerGroups.map(
             (group, index) => (
               <SellerPackage
-                key={group.sellerId}
-                group={group}
-                packageNumber={
-                  index + 1
-                }
-                fallbackStatus={
-                  order.status
-                }
-              />
+  key={group.sellerId}
+  group={group}
+  packageNumber={
+    index + 1
+  }
+  fallbackStatus={
+    order.status
+  }
+  orderId={
+    order.id
+  }
+  paymentStatus={
+    order.paymentStatus
+  }
+/>
             )
           )}
         </div>
@@ -505,10 +512,14 @@ function SellerPackage({
   group,
   packageNumber,
   fallbackStatus,
+  orderId,
+  paymentStatus,
 }: {
   group: SellerGroup;
   packageNumber: number;
   fallbackStatus: OrderStatus;
+  orderId: string;
+  paymentStatus: PaymentStatus;
 }) {
   const fulfilment =
     group.fulfilment;
@@ -532,6 +543,8 @@ function SellerPackage({
 
   return (
     <article className="overflow-hidden rounded-[30px] border border-black/[0.06] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.025)]">
+      {/* PACKAGE HEADER */}
+
       <div className="flex flex-col gap-5 border-b border-black/[0.06] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-[#e7ddd0] text-neutral-700">
@@ -543,7 +556,8 @@ function SellerPackage({
 
           <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Package {packageNumber}
+              Package{" "}
+              {packageNumber}
             </p>
 
             <h3 className="mt-1 truncate text-base font-semibold text-neutral-950">
@@ -552,15 +566,34 @@ function SellerPackage({
           </div>
         </div>
 
-        <StatusBadge
-          status={status}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <ContactSellerButton
+            orderId={
+              orderId
+            }
+            sellerId={
+              group.sellerId
+            }
+            disabled={
+              paymentStatus !==
+              "PAID"
+            }
+          />
+
+          <StatusBadge
+            status={status}
+          />
+        </div>
       </div>
+
+      {/* PACKAGE DETAILS */}
 
       <div className="px-6 py-7">
         <FulfilmentTimeline
           status={status}
-          fulfilment={fulfilment}
+          fulfilment={
+            fulfilment
+          }
         />
 
         {(trackingNumber ||
@@ -609,15 +642,24 @@ function SellerPackage({
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-neutral-300">
-                    <ShoppingBag className="h-4 w-4" />
+                    <ShoppingBag
+                      className="h-4 w-4"
+                      strokeWidth={
+                        1.7
+                      }
+                    />
                   </div>
                 )}
               </div>
             ))}
 
           <p className="text-xs text-neutral-500">
-            {group.items.length}{" "}
-            {group.items.length === 1
+            {
+              group.items
+                .length
+            }{" "}
+            {group.items
+              .length === 1
               ? "product"
               : "products"}{" "}
             in this package

@@ -2,7 +2,10 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "@org/prisma";
 
-import { BadRequestError, NotFoundError } from "@org/error-handler";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "@org/error-handler";
 
 import {
   type CreateNotificationInput,
@@ -16,7 +19,8 @@ import {
 // CONSTANTS
 // ======================================================
 
-const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+const OBJECT_ID_PATTERN =
+  /^[a-f\d]{24}$/i;
 
 const RECIPIENT_ROLES: NotificationRecipientRole[] = [
   "USER",
@@ -31,6 +35,8 @@ const NOTIFICATION_TYPES: NotificationEventType[] = [
   "NEW_REVIEW",
   "SELLER_REPLY",
   "PAYMENT_RECEIVED",
+  "NEW_MESSAGE",
+  "SELLER_PAYMENT_SETTLED",
 ];
 
 // ======================================================
@@ -43,16 +49,24 @@ const normalizeRequiredText = (
   maximumLength: number,
 ): string => {
   if (typeof value !== "string") {
-    throw new BadRequestError(`${fieldName} is required`);
+    throw new BadRequestError(
+      `${fieldName} is required`,
+    );
   }
 
-  const normalizedValue = value.trim();
+  const normalizedValue =
+    value.trim();
 
   if (!normalizedValue) {
-    throw new BadRequestError(`${fieldName} is required`);
+    throw new BadRequestError(
+      `${fieldName} is required`,
+    );
   }
 
-  if (normalizedValue.length > maximumLength) {
+  if (
+    normalizedValue.length >
+    maximumLength
+  ) {
     throw new BadRequestError(
       `${fieldName} cannot exceed ${maximumLength} characters`,
     );
@@ -61,33 +75,62 @@ const normalizeRequiredText = (
   return normalizedValue;
 };
 
-const normalizeRecipientId = (value: unknown): string => {
-  const recipientId = normalizeRequiredText(value, "Recipient ID", 100);
+const normalizeRecipientId = (
+  value: unknown,
+): string => {
+  const recipientId =
+    normalizeRequiredText(
+      value,
+      "Recipient ID",
+      100,
+    );
 
-  if (!OBJECT_ID_PATTERN.test(recipientId)) {
-    throw new BadRequestError("Recipient ID is invalid");
+  if (
+    !OBJECT_ID_PATTERN.test(
+      recipientId,
+    )
+  ) {
+    throw new BadRequestError(
+      "Recipient ID is invalid",
+    );
   }
 
   return recipientId;
 };
 
-const normalizeActionUrl = (value: unknown): string | null => {
-  if (value === undefined || value === null || value === "") {
+const normalizeActionUrl = (
+  value: unknown,
+): string | null => {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
     return null;
   }
 
   if (typeof value !== "string") {
-    throw new BadRequestError("Action URL must be a string");
+    throw new BadRequestError(
+      "Action URL must be a string",
+    );
   }
 
-  const actionUrl = value.trim();
+  const actionUrl =
+    value.trim();
 
-  if (!actionUrl.startsWith("/") || actionUrl.startsWith("//")) {
-    throw new BadRequestError("Action URL must be a relative application path");
+  if (
+    !actionUrl.startsWith("/") ||
+    actionUrl.startsWith("//")
+  ) {
+    throw new BadRequestError(
+      "Action URL must be a relative application path",
+    );
   }
 
   if (actionUrl.length > 500) {
-    throw new BadRequestError("Action URL cannot exceed 500 characters");
+    throw new BadRequestError(
+      "Action URL cannot exceed 500 characters",
+    );
   }
 
   return actionUrl;
@@ -96,12 +139,20 @@ const normalizeActionUrl = (value: unknown): string | null => {
 const normalizeMetadata = (
   value: unknown,
 ): Prisma.InputJsonValue | undefined => {
-  if (value === undefined || value === null) {
+  if (
+    value === undefined ||
+    value === null
+  ) {
     return undefined;
   }
 
-  if (typeof value !== "object" || Array.isArray(value)) {
-    throw new BadRequestError("Metadata must be an object");
+  if (
+    typeof value !== "object" ||
+    Array.isArray(value)
+  ) {
+    throw new BadRequestError(
+      "Metadata must be an object",
+    );
   }
 
   return value as Prisma.InputJsonValue;
@@ -130,220 +181,311 @@ export const toRecipientRole = (
 // CREATE IDEMPOTENT NOTIFICATION
 // ======================================================
 
-export const createNotification = async (input: CreateNotificationInput) => {
-  const recipientId = normalizeRecipientId(input.recipientId);
+export const createNotification =
+  async (
+    input: CreateNotificationInput,
+  ) => {
+    const recipientId =
+      normalizeRecipientId(
+        input.recipientId,
+      );
 
-  const recipientRole = input.recipientRole;
+    const recipientRole =
+      input.recipientRole;
 
-  if (!RECIPIENT_ROLES.includes(recipientRole)) {
-    throw new BadRequestError("Invalid notification recipient role");
-  }
+    if (
+      !RECIPIENT_ROLES.includes(
+        recipientRole,
+      )
+    ) {
+      throw new BadRequestError(
+        "Invalid notification recipient role",
+      );
+    }
 
-  const type = input.type;
+    const type = input.type;
 
-  if (!NOTIFICATION_TYPES.includes(type)) {
-    throw new BadRequestError("Invalid notification type");
-  }
+    if (
+      !NOTIFICATION_TYPES.includes(
+        type,
+      )
+    ) {
+      throw new BadRequestError(
+        "Invalid notification type",
+      );
+    }
 
-  const title = normalizeRequiredText(input.title, "Title", 120);
+    const title =
+      normalizeRequiredText(
+        input.title,
+        "Title",
+        120,
+      );
 
-  const message = normalizeRequiredText(input.message, "Message", 500);
+    const message =
+      normalizeRequiredText(
+        input.message,
+        "Message",
+        500,
+      );
 
-  const actionUrl = normalizeActionUrl(input.actionUrl);
+    const actionUrl =
+      normalizeActionUrl(
+        input.actionUrl,
+      );
 
-  const metadata = normalizeMetadata(input.metadata);
+    const metadata =
+      normalizeMetadata(
+        input.metadata,
+      );
 
-  const idempotencyKey = normalizeRequiredText(
-    input.idempotencyKey,
-    "Idempotency key",
-    250,
-  );
+    const idempotencyKey =
+      normalizeRequiredText(
+        input.idempotencyKey,
+        "Idempotency key",
+        250,
+      );
 
-  return prisma.notification.upsert({
-    where: {
-      idempotencyKey,
-    },
+    return prisma.notification.upsert({
+      where: {
+        idempotencyKey,
+      },
 
-    update: {},
+      update: {},
 
-    create: {
-      recipientId,
-      recipientRole,
-      type,
-      title,
-      message,
-      actionUrl,
-      metadata,
-      idempotencyKey,
-    },
-  });
-};
+      create: {
+        recipientId,
+        recipientRole,
+        type,
+        title,
+        message,
+        actionUrl,
+        metadata,
+        idempotencyKey,
+      },
+    });
+  };
 
 // ======================================================
 // GET NOTIFICATIONS
 // ======================================================
 
-export const getNotifications = async (
-  recipientId: string,
-  recipientRole: NotificationRecipientRole,
-  query: NotificationListQuery = {},
-) => {
-  const normalizedRecipientId = normalizeRecipientId(recipientId);
+export const getNotifications =
+  async (
+    recipientId: string,
+    recipientRole: NotificationRecipientRole,
+    query: NotificationListQuery = {},
+  ) => {
+    const normalizedRecipientId =
+      normalizeRecipientId(
+        recipientId,
+      );
 
-  const page = Math.max(1, query.page ?? 1);
+    const page = Math.max(
+      1,
+      query.page ?? 1,
+    );
 
-  const limit = Math.min(50, Math.max(1, query.limit ?? 10));
+    const limit = Math.min(
+      50,
+      Math.max(
+        1,
+        query.limit ?? 10,
+      ),
+    );
 
-  const where = {
-    recipientId: normalizedRecipientId,
+    const where = {
+      recipientId:
+        normalizedRecipientId,
 
-    recipientRole,
+      recipientRole,
 
-    ...(query.unreadOnly
-      ? {
-          isRead: false,
-        }
-      : {}),
-  };
+      ...(query.unreadOnly
+        ? {
+            isRead: false,
+          }
+        : {}),
+    };
 
-  const [notifications, totalNotifications, unreadCount] = await Promise.all([
-    prisma.notification.findMany({
-      where,
-
-      orderBy: {
-        createdAt: "desc",
-      },
-
-      skip: (page - 1) * limit,
-
-      take: limit,
-    }),
-
-    prisma.notification.count({
-      where,
-    }),
-
-    prisma.notification.count({
-      where: {
-        recipientId: normalizedRecipientId,
-
-        recipientRole,
-
-        isRead: false,
-      },
-    }),
-  ]);
-
-  const totalPages = Math.max(1, Math.ceil(totalNotifications / limit));
-
-  return {
-    notifications,
-    unreadCount,
-
-    pagination: {
-      page,
-      limit,
+    const [
+      notifications,
       totalNotifications,
-      totalPages,
+      unreadCount,
+    ] = await Promise.all([
+      prisma.notification.findMany({
+        where,
 
-      hasPreviousPage: page > 1,
+        orderBy: {
+          createdAt: "desc",
+        },
 
-      hasNextPage: page < totalPages,
-    },
+        skip:
+          (page - 1) *
+          limit,
+
+        take: limit,
+      }),
+
+      prisma.notification.count({
+        where,
+      }),
+
+      prisma.notification.count({
+        where: {
+          recipientId:
+            normalizedRecipientId,
+
+          recipientRole,
+
+          isRead: false,
+        },
+      }),
+    ]);
+
+    const totalPages = Math.max(
+      1,
+      Math.ceil(
+        totalNotifications /
+          limit,
+      ),
+    );
+
+    return {
+      notifications,
+      unreadCount,
+
+      pagination: {
+        page,
+        limit,
+        totalNotifications,
+        totalPages,
+        hasPreviousPage:
+          page > 1,
+        hasNextPage:
+          page < totalPages,
+      },
+    };
   };
-};
 
 // ======================================================
 // GET UNREAD COUNT
 // ======================================================
 
-export const getUnreadNotificationCount = async (
-  recipientId: string,
-  recipientRole: NotificationRecipientRole,
-): Promise<number> => {
-  return prisma.notification.count({
-    where: {
-      recipientId: normalizeRecipientId(recipientId),
+export const getUnreadNotificationCount =
+  async (
+    recipientId: string,
+    recipientRole: NotificationRecipientRole,
+  ): Promise<number> => {
+    return prisma.notification.count({
+      where: {
+        recipientId:
+          normalizeRecipientId(
+            recipientId,
+          ),
 
-      recipientRole,
-      isRead: false,
-    },
-  });
-};
+        recipientRole,
+
+        isRead: false,
+      },
+    });
+  };
 
 // ======================================================
 // MARK ONE AS READ
 // ======================================================
 
-export const markNotificationAsRead = async (
-  notificationId: string,
-  recipientId: string,
-  recipientRole: NotificationRecipientRole,
-) => {
-  const normalizedNotificationId = normalizeRecipientId(notificationId);
+export const markNotificationAsRead =
+  async (
+    notificationId: string,
+    recipientId: string,
+    recipientRole: NotificationRecipientRole,
+  ) => {
+    const normalizedNotificationId =
+      normalizeRecipientId(
+        notificationId,
+      );
 
-  const notification = await prisma.notification.findFirst({
-    where: {
-      id: normalizedNotificationId,
+    const notification =
+      await prisma.notification.findFirst(
+        {
+          where: {
+            id: normalizedNotificationId,
 
-      recipientId: normalizeRecipientId(recipientId),
+            recipientId:
+              normalizeRecipientId(
+                recipientId,
+              ),
 
-      recipientRole,
-    },
+            recipientRole,
+          },
 
-    select: {
-      id: true,
-      isRead: true,
-    },
-  });
+          select: {
+            id: true,
+            isRead: true,
+          },
+        },
+      );
 
-  if (!notification) {
-    throw new NotFoundError("Notification not found");
-  }
+    if (!notification) {
+      throw new NotFoundError(
+        "Notification not found",
+      );
+    }
 
-  if (notification.isRead) {
-    return prisma.notification.findUnique({
+    if (notification.isRead) {
+      return prisma.notification.findUnique(
+        {
+          where: {
+            id: notification.id,
+          },
+        },
+      );
+    }
+
+    return prisma.notification.update({
       where: {
         id: notification.id,
       },
+
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
     });
-  }
-
-  return prisma.notification.update({
-    where: {
-      id: notification.id,
-    },
-
-    data: {
-      isRead: true,
-      readAt: new Date(),
-    },
-  });
-};
+  };
 
 // ======================================================
 // MARK ALL AS READ
 // ======================================================
 
-export const markAllNotificationsAsRead = async (
-  recipientId: string,
-  recipientRole: NotificationRecipientRole,
-) => {
-  const result = await prisma.notification.updateMany({
-    where: {
-      recipientId: normalizeRecipientId(recipientId),
+export const markAllNotificationsAsRead =
+  async (
+    recipientId: string,
+    recipientRole: NotificationRecipientRole,
+  ) => {
+    const result =
+      await prisma.notification.updateMany(
+        {
+          where: {
+            recipientId:
+              normalizeRecipientId(
+                recipientId,
+              ),
 
-      recipientRole,
-      isRead: false,
-    },
+            recipientRole,
 
-    data: {
-      isRead: true,
-      readAt: new Date(),
-    },
-  });
+            isRead: false,
+          },
 
-  return {
-    updatedCount: result.count,
+          data: {
+            isRead: true,
+            readAt: new Date(),
+          },
+        },
+      );
+
+    return {
+      updatedCount:
+        result.count,
+    };
   };
-};

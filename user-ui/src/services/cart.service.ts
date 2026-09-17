@@ -86,3 +86,5 @@ export const clearCart =
 
     return response.data;
   };
+
+

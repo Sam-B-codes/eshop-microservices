@@ -41,7 +41,9 @@ export type NotificationEventType =
   | "ORDER_STATUS_UPDATED"
   | "NEW_REVIEW"
   | "SELLER_REPLY"
-  | "PAYMENT_RECEIVED";
+  | "PAYMENT_RECEIVED"
+   | "NEW_MESSAGE"
+  | "SELLER_PAYMENT_SETTLED";
 
 // ======================================================
 // CREATE NOTIFICATION

@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "buildCommand": "cd .. && npx nx build @org/chat-service",
+  "installCommand": "cd .. && npm install",
+  "functions": {
+    "src/index.js": {
+      "includeFiles": [
+        "dist/**"
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/src/index.js"
+    }
+  ]
+}

@@ -33,11 +33,12 @@ model users {
 
   following String[]
 
-  avatar   images?
-  cart     Cart?
-  wishlist Wishlist?
-  orders   Order[]
-  reviews  Review[]
+  avatar        images?
+  cart          Cart?
+  wishlist      Wishlist?
+  orders        Order[]
+  reviews       Review[]
+  conversations Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,15 +84,15 @@ model sellers {
 
   // Relations
 
-  products     Product[]
-  coupons      Coupon[]
-  orderItems   OrderItem[]
-  sellerOrders SellerOrder[]
-  settlements  SellerSettlement[]
-  reviews      Review[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  products      Product[]
+  coupons       Coupon[]
+  orderItems    OrderItem[]
+  sellerOrders  SellerOrder[]
+  settlements   SellerSettlement[]
+  reviews       Review[]
+  conversations Conversation[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([status])
   @@index([isOnboarded])
@@ -353,6 +354,7 @@ model Order {
   sellerOrders      SellerOrder[]
   sellerSettlements SellerSettlement[]
   reviews           Review[]
+  conversations     Conversation[]
 
   // Payment information
 
@@ -673,4 +675,54 @@ enum NotificationType {
   NEW_REVIEW
   SELLER_REPLY
   PAYMENT_RECEIVED
+  NEW_MESSAGE
+  SELLER_PAYMENT_SETTLED
+}
+
+model Conversation {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId       String    @db.ObjectId
+  userId        String    @db.ObjectId
+  sellerId      String    @db.ObjectId
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  order    Order         @relation(fields: [orderId], references: [id])
+  user     users         @relation(fields: [userId], references: [id])
+  seller   sellers       @relation(fields: [sellerId], references: [id])
+  messages ChatMessage[]
+
+  @@unique([orderId, sellerId])
+  @@index([userId, lastMessageAt])
+  @@index([sellerId, lastMessageAt])
+}
+
+model ChatMessage {
+  id             String              @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String              @db.ObjectId
+  senderId       String              @db.ObjectId
+  senderRole     ChatParticipantRole
+  type           ChatMessageType     @default(TEXT)
+  content        String
+  isRead         Boolean             @default(false)
+  readAt         DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([conversationId, isRead])
+  @@index([senderId, senderRole])
+}
+
+enum ChatParticipantRole {
+  USER
+  SELLER
+}
+
+enum ChatMessageType {
+  TEXT
+  SYSTEM
 }
