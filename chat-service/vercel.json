@@ -4,9 +4,7 @@
   "buildCommand": "cd .. && npx nx build @org/chat-service",
   "functions": {
     "src/index.js": {
-      "includeFiles": [
-        "dist/**"
-      ]
+      "includeFiles": "dist/**"
     }
   },
   "rewrites": [
