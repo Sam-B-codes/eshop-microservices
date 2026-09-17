@@ -4,7 +4,9 @@ export type NotificationType =
   | "ORDER_STATUS_UPDATED"
   | "NEW_REVIEW"
   | "SELLER_REPLY"
-  | "PAYMENT_RECEIVED";
+  | "PAYMENT_RECEIVED"
+  | "NEW_MESSAGE"
+| "SELLER_PAYMENT_SETTLED";
 
 export interface Notification {
   id: string;

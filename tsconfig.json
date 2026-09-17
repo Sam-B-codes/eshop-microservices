@@ -65,6 +65,12 @@
     },
     {
       "path": "./notification-client"
+    },
+    {
+      "path": "./chat-service"
+    },
+    {
+      "path": "./chat-client"
     }
   ]
 }
