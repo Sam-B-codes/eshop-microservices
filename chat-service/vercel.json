@@ -2,15 +2,16 @@
   "version": 2,
   "installCommand": "cd .. && npm install --include=dev",
   "buildCommand": "cd .. && npx prisma generate --schema=prisma/schema.prisma && npx nx build @org/chat-service",
-  "functions": {
-    "src/index.js": {
-      "includeFiles": "dist/**"
-    }
-  },
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/src/index.js"
+      "src": "src/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "src/index.js"
     }
   ]
 }
