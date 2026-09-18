@@ -9,11 +9,5 @@
       "includeFiles": "dist/**",
       "maxDuration": 60
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/src/index.js"
-    }
-  ]
+  }
 }
