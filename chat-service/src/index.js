@@ -1,9 +1,16 @@
-const express = require("express");
+"use strict";
 
-const chatService = require("../dist/main.js");
+const path = require("node:path");
 
-void express;
+const mainPath = path.join(
+  __dirname,
+  "..",
+  "dist",
+  "main.js"
+);
+
+const mainModule = require(mainPath);
 
 module.exports =
-  chatService.default ||
-  chatService;
+  mainModule.default ||
+  mainModule;

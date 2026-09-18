@@ -2,6 +2,11 @@
   "version": 2,
   "installCommand": "cd .. && npm install --include=dev",
   "buildCommand": "cd .. && npx prisma generate --schema=prisma/schema.prisma && npx nx build @org/chat-service",
+  "functions": {
+    "src/index.js": {
+      "includeFiles": "dist/**"
+    }
+  },
   "builds": [
     {
       "src": "src/index.js",
