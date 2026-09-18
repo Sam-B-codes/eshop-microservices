@@ -1,16 +1,15 @@
 "use strict";
 
-const path = require("node:path");
+const express = require("express");
 
-const mainPath = path.join(
-  __dirname,
-  "..",
-  "dist",
-  "main.js"
-);
+const mainModule = require("../dist/main.js");
 
-const mainModule = require(mainPath);
-
-module.exports =
+const app =
   mainModule.default ||
   mainModule;
+
+// Keep Express directly referenced so Vercel identifies
+// this file as the Express serverless entrypoint.
+void express;
+
+module.exports = app;
