@@ -47,7 +47,8 @@
         "product-service-e2e/**/*",
         "coupon-service-e2e/**/*",
         "order-service-e2e/**/*",
-        "payment-service-e2e/**/*"
+        "payment-service-e2e/**/*",
+        "event-service-e2e/**/*"
       ]
     },
     {

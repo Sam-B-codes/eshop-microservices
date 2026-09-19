@@ -71,6 +71,15 @@
     },
     {
       "path": "./chat-client"
+    },
+    {
+      "path": "./event-client"
+    },
+    {
+      "path": "./event-service-e2e"
+    },
+    {
+      "path": "./event-service"
     }
   ]
 }

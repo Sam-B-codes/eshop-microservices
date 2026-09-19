@@ -10,6 +10,10 @@ import {
   SellerOrderListQuery,
   SellerOrderListResult,
 } from "../types/order.types";
+
+import {
+  sendOrderCreatedEvent,
+} from "./order-event.service";
 // ======================================================
 // ROUND MONEY
 // ======================================================
@@ -1034,6 +1038,9 @@ export const createOrder =
     console.log(
       `🧾 Created pending order ${order.id} for user ${userId}`
     );
+    await sendOrderCreatedEvent(
+  order
+);
 
     // ==================================================
     // IMPORTANT

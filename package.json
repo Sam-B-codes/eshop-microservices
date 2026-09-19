@@ -33,6 +33,7 @@
     "express-rate-limit": "^8.5.2",
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
+    "kafkajs": "^2.2.4",
     "lucide-react": "^1.24.0",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
@@ -109,7 +110,7 @@
     "ts-jest": "^29.4.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
-    "tsx": "^4.23.0",
+    "tsx": "^4.23.13",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.40.0",
     "webpack": "^5.101.3",
@@ -138,6 +139,9 @@
     "notification-service",
     "notification-client",
     "chat-service",
-    "chat-client"
+    "chat-client",
+    "event-client",
+    "event-service",
+    "event-service-e2e"
   ]
 }

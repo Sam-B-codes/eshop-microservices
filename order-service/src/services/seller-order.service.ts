@@ -19,6 +19,10 @@ import {
   sendOrderStatusNotification,
 } from "../utils/order-notification.helper";
 
+import {
+  sendOrderStatusUpdatedEvent,
+} from "./order-event.service";
+
 // ======================================================
 // HELPERS
 // ======================================================
@@ -947,6 +951,23 @@ export const updateSellerOrderStatus =
     await sendOrderStatusNotification(
       updatedSellerOrder.id
     );
+
+    await sendOrderStatusUpdatedEvent({
+  orderId:
+    updatedSellerOrder.orderId,
+
+  sellerOrderId:
+    updatedSellerOrder.id,
+
+  sellerId:
+    updatedSellerOrder.sellerId,
+
+  previousStatus:
+    sellerOrder.status,
+
+  status:
+    updatedSellerOrder.status,
+});
 
     return updatedSellerOrder;
   };

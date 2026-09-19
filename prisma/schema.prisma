@@ -726,3 +726,33 @@ enum ChatMessageType {
   TEXT
   SYSTEM
 }
+
+// ======================================================
+// PROCESSED KAFKA EVENT
+// ======================================================
+
+model ProcessedKafkaEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  eventId String @unique
+
+  type   String
+  source String
+  topic  String
+
+  messageKey String?
+
+  partition Int
+  offset    String
+
+  occurredAt  DateTime
+  processedAt DateTime @default(now())
+
+  payload Json
+
+  createdAt DateTime @default(now())
+
+  @@index([type, occurredAt])
+  @@index([topic, processedAt])
+  @@index([source])
+}

@@ -18,6 +18,9 @@
   ],
   "references": [
     {
+      "path": "../event-client/tsconfig.lib.json"
+    },
+    {
       "path": "../prisma/tsconfig.lib.json"
     },
     {

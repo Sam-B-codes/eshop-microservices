@@ -28,6 +28,9 @@
       "path": "../prisma/tsconfig.lib.json"
     },
     {
+      "path": "../event-client/tsconfig.lib.json"
+    },
+    {
       "path": "../libs/tsconfig.lib.json"
     },
     {

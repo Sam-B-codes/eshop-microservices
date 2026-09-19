@@ -4,6 +4,11 @@ import { NotFoundError, ValidationError } from "@org/error-handler";
 
 import prisma from "@org/prisma";
 
+import {
+  sendProductPublishedEvent,
+  sendProductViewedEvent,
+} from "./product-event.service";
+
 export interface CreateProductDTO {
   title: string;
   description: string;
@@ -118,7 +123,8 @@ export const createProduct = async (data: CreateProductDTO) => {
 
   const salePrice = calculateSalePrice(data.price, normalizedDiscountPrice);
 
-  return prisma.product.create({
+  const product =
+  await prisma.product.create({
     data: {
       sellerId: data.sellerId,
       title: data.title,
@@ -138,6 +144,17 @@ export const createProduct = async (data: CreateProductDTO) => {
       status: data.status,
     },
   });
+
+  if (
+  product.status ===
+  "PUBLISHED"
+) {
+  await sendProductPublishedEvent(
+    product
+  );
+}
+
+return product;
 };
 
 // ======================================================
@@ -469,59 +486,84 @@ export const getPublicProducts = async (query: PublicProductQuery) => {
 // GET ONE PUBLIC PRODUCT BY SLUG
 // ======================================================
 
-export const getPublicProductBySlug = async (slug: string) => {
-  const cleanSlug = slug.trim();
+// ======================================================
+// GET ONE PUBLIC PRODUCT BY SLUG
+// ======================================================
+
+export const getPublicProductBySlug = async (
+  slug: string
+) => {
+  const cleanSlug =
+    slug.trim();
 
   if (!cleanSlug) {
-    throw new NotFoundError("Product not found");
+    throw new NotFoundError(
+      "Product not found"
+    );
   }
 
-  const product = await prisma.product.findFirst({
-    where: {
-      slug: cleanSlug,
-      status: "PUBLISHED",
-    },
+  const product =
+    await prisma.product.findFirst({
+      where: {
+        slug:
+          cleanSlug,
 
-    select: {
-      id: true,
-      sellerId: true,
-      title: true,
-      slug: true,
-      description: true,
-      category: true,
-      brand: true,
-      price: true,
-      discountPrice: true,
-      salePrice: true,
-      stock: true,
-      images: true,
-      tags: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+        status:
+          "PUBLISHED",
+      },
+
+      select: {
+        id: true,
+        sellerId: true,
+        title: true,
+        slug: true,
+        description: true,
+        category: true,
+        brand: true,
+        price: true,
+        discountPrice: true,
+        salePrice: true,
+        stock: true,
+        images: true,
+        tags: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
   if (!product) {
-    throw new NotFoundError("Product not found");
+    throw new NotFoundError(
+      "Product not found"
+    );
   }
 
-  const hasDiscount = product.salePrice < product.price;
+  await sendProductViewedEvent(
+    product
+  );
+
+  const hasDiscount =
+    product.salePrice <
+    product.price;
 
   return {
     ...product,
 
-    available: product.stock > 0,
+    available:
+      product.stock > 0,
 
     availability:
-      product.stock > 0 ? ("IN_STOCK" as const) : ("OUT_OF_STOCK" as const),
+      product.stock > 0
+        ? ("IN_STOCK" as const)
+        : ("OUT_OF_STOCK" as const),
 
     hasDiscount,
 
-    discountPercentage: calculateDiscountPercentage(
-      product.price,
-      product.salePrice,
-    ),
+    discountPercentage:
+      calculateDiscountPercentage(
+        product.price,
+        product.salePrice
+      ),
   };
 };
 
@@ -621,7 +663,8 @@ export const updateProduct = async (
 
   void _ignoredSellerId;
 
-  return prisma.product.update({
+  const updatedProduct =
+  await prisma.product.update({
     where: {
       id,
     },
@@ -638,6 +681,19 @@ export const updateProduct = async (
       }),
     },
   });
+
+  if (
+  product.status !==
+    "PUBLISHED" &&
+  updatedProduct.status ===
+    "PUBLISHED"
+) {
+  await sendProductPublishedEvent(
+    updatedProduct
+  );
+}
+
+return updatedProduct;
 };
 
 // ======================================================

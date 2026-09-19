@@ -1,4 +1,6 @@
-import { ChatParticipantRole } from "@prisma/client";
+import {
+  ChatParticipantRole,
+} from "@prisma/client";
 
 import prisma from "@org/prisma";
 
@@ -16,7 +18,13 @@ import {
   SendMessageInput,
 } from "../types/chat.types";
 
-import { sendChatNotification } from "./chat-notification.service";
+import {
+  sendChatMessageEvent,
+} from "./chat-event.service";
+
+import {
+  sendChatNotification,
+} from "./chat-notification.service";
 
 // ======================================================
 // CONSTANTS
@@ -30,422 +38,583 @@ const MAX_MESSAGE_LENGTH = 2000;
 // HELPERS
 // ======================================================
 
-const normalizeString = (value: unknown): string => {
-  return typeof value === "string" ? value.trim() : "";
+const normalizeString = (
+  value: unknown,
+): string => {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
 };
 
-const normalizePagination = (pageValue?: number, limitValue?: number) => {
-  const requestedPage = Number(pageValue);
+const normalizePagination = (
+  pageValue?: number,
+  limitValue?: number,
+) => {
+  const requestedPage =
+    Number(pageValue);
 
-  const requestedLimit = Number(limitValue);
+  const requestedLimit =
+    Number(limitValue);
 
   const page =
-    Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+    Number.isInteger(
+      requestedPage,
+    ) &&
+    requestedPage > 0
+      ? requestedPage
+      : 1;
 
   const limit =
-    Number.isInteger(requestedLimit) && requestedLimit > 0
-      ? Math.min(requestedLimit, MAX_LIMIT)
+    Number.isInteger(
+      requestedLimit,
+    ) &&
+    requestedLimit > 0
+      ? Math.min(
+          requestedLimit,
+          MAX_LIMIT,
+        )
       : DEFAULT_LIMIT;
 
   return {
     page,
     limit,
-    skip: (page - 1) * limit,
+    skip:
+      (page - 1) *
+      limit,
   };
 };
 
-const getDatabaseRole = (actor: ChatActor): ChatParticipantRole => {
-  return actor.role === "user" ? "USER" : "SELLER";
+const getDatabaseRole = (
+  actor: ChatActor,
+): ChatParticipantRole => {
+  return actor.role === "user"
+    ? "USER"
+    : "SELLER";
 };
 
-const getOppositeRole = (actor: ChatActor): ChatParticipantRole => {
-  return actor.role === "user" ? "SELLER" : "USER";
+const getOppositeRole = (
+  actor: ChatActor,
+): ChatParticipantRole => {
+  return actor.role === "user"
+    ? "SELLER"
+    : "USER";
 };
 
 // ======================================================
 // VERIFY CONVERSATION ACCESS
 // ======================================================
 
-const getAccessibleConversation = async (
-  actor: ChatActor,
-  conversationId: string,
-) => {
-  const normalizedId = normalizeString(conversationId);
+const getAccessibleConversation =
+  async (
+    actor: ChatActor,
+    conversationId: string,
+  ) => {
+    const normalizedId =
+      normalizeString(
+        conversationId,
+      );
 
-  if (!normalizedId) {
-    throw new BadRequestError("Conversation ID is required");
-  }
+    if (!normalizedId) {
+      throw new BadRequestError(
+        "Conversation ID is required",
+      );
+    }
 
-  const conversation = await prisma.conversation.findFirst({
-    where: {
-      id: normalizedId,
+    const conversation =
+      await prisma.conversation.findFirst(
+        {
+          where: {
+            id: normalizedId,
 
-      ...(actor.role === "user"
-        ? {
-            userId: actor.id,
-          }
-        : {
-            sellerId: actor.id,
-          }),
-    },
+            ...(actor.role ===
+            "user"
+              ? {
+                  userId:
+                    actor.id,
+                }
+              : {
+                  sellerId:
+                    actor.id,
+                }),
+          },
 
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+
+            seller: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                shopName: true,
+              },
+            },
+
+            order: {
+              select: {
+                id: true,
+                status: true,
+                paymentStatus:
+                  true,
+                createdAt: true,
+              },
+            },
+          },
         },
-      },
+      );
 
-      seller: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          shopName: true,
-        },
-      },
+    if (!conversation) {
+      throw new NotFoundError(
+        "Conversation not found",
+      );
+    }
 
-      order: {
-        select: {
-          id: true,
-          status: true,
-          paymentStatus: true,
-          createdAt: true,
-        },
-      },
-    },
-  });
-
-  if (!conversation) {
-    throw new NotFoundError("Conversation not found");
-  }
-
-  return conversation;
-};
+    return conversation;
+  };
 
 // ======================================================
 // CREATE OR REUSE CONVERSATION
 // ======================================================
 
-export const createConversation = async (
-  actor: ChatActor,
-  input: CreateConversationInput,
-) => {
-  if (actor.role !== "user") {
-    throw new AuthenticationError("Only customers can start a conversation");
-  }
+export const createConversation =
+  async (
+    actor: ChatActor,
+    input: CreateConversationInput,
+  ) => {
+    if (
+      actor.role !== "user"
+    ) {
+      throw new AuthenticationError(
+        "Only customers can start a conversation",
+      );
+    }
 
-  const orderId = normalizeString(input.orderId);
+    const orderId =
+      normalizeString(
+        input.orderId,
+      );
 
-  const sellerId = normalizeString(input.sellerId);
+    const sellerId =
+      normalizeString(
+        input.sellerId,
+      );
 
-  if (!orderId) {
-    throw new BadRequestError("Order ID is required");
-  }
+    if (!orderId) {
+      throw new BadRequestError(
+        "Order ID is required",
+      );
+    }
 
-  if (!sellerId) {
-    throw new BadRequestError("Seller ID is required");
-  }
+    if (!sellerId) {
+      throw new BadRequestError(
+        "Seller ID is required",
+      );
+    }
 
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
+    const order =
+      await prisma.order.findFirst(
+        {
+          where: {
+            id: orderId,
 
-      userId: actor.id,
+            userId:
+              actor.id,
 
-      paymentStatus: "PAID",
+            paymentStatus:
+              "PAID",
 
-      sellerOrders: {
-        some: {
-          sellerId,
+            sellerOrders: {
+              some: {
+                sellerId,
+              },
+            },
+          },
+
+          select: {
+            id: true,
+            userId: true,
+
+            sellerOrders: {
+              where: {
+                sellerId,
+              },
+
+              select: {
+                id: true,
+                sellerId: true,
+              },
+            },
+          },
         },
-      },
-    },
+      );
 
-    select: {
-      id: true,
-      userId: true,
+    if (!order) {
+      throw new NotFoundError(
+        "Paid order containing this seller was not found",
+      );
+    }
 
-      sellerOrders: {
-        where: {
-          sellerId,
+    const conversation =
+      await prisma.conversation.upsert(
+        {
+          where: {
+            orderId_sellerId: {
+              orderId:
+                order.id,
+
+              sellerId,
+            },
+          },
+
+          create: {
+            orderId:
+              order.id,
+
+            userId:
+              actor.id,
+
+            sellerId,
+          },
+
+          update: {},
+
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+
+            seller: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                shopName: true,
+              },
+            },
+
+            order: {
+              select: {
+                id: true,
+                status: true,
+                paymentStatus:
+                  true,
+                createdAt: true,
+              },
+            },
+          },
         },
+      );
 
-        select: {
-          id: true,
-          sellerId: true,
-        },
-      },
-    },
-  });
-
-  if (!order) {
-    throw new NotFoundError("Paid order containing this seller was not found");
-  }
-
-  const conversation = await prisma.conversation.upsert({
-    where: {
-      orderId_sellerId: {
-        orderId: order.id,
-
-        sellerId,
-      },
-    },
-
-    create: {
-      orderId: order.id,
-
-      userId: actor.id,
-
-      sellerId,
-    },
-
-    update: {},
-
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-
-      seller: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          shopName: true,
-        },
-      },
-
-      order: {
-        select: {
-          id: true,
-          status: true,
-          paymentStatus: true,
-          createdAt: true,
-        },
-      },
-    },
-  });
-
-  return {
-    success: true,
-
-    message: "Conversation ready",
-
-    conversation,
+    return {
+      success: true,
+      message:
+        "Conversation ready",
+      conversation,
+    };
   };
-};
 
 // ======================================================
 // GET CONVERSATIONS
 // ======================================================
 
-export const getConversations = async (
-  actor: ChatActor,
-  query: ChatListQuery = {},
-) => {
-  const { page, limit, skip } = normalizePagination(query.page, query.limit);
-
-  const oppositeRole = getOppositeRole(actor);
-
-  const where =
-    actor.role === "user"
-      ? {
-          userId: actor.id,
-        }
-      : {
-          sellerId: actor.id,
-        };
-
-  const [totalConversations, conversations] = await prisma.$transaction([
-    prisma.conversation.count({
-      where,
-    }),
-
-    prisma.conversation.findMany({
-      where,
-
-      skip,
-      take: limit,
-
-      orderBy: [
-        {
-          lastMessageAt: "desc",
-        },
-        {
-          createdAt: "desc",
-        },
-      ],
-
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-
-        seller: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            shopName: true,
-          },
-        },
-
-        order: {
-          select: {
-            id: true,
-            status: true,
-            paymentStatus: true,
-            createdAt: true,
-
-            items: {
-              where:
-                actor.role === "seller"
-                  ? {
-                      sellerId: actor.id,
-                    }
-                  : undefined,
-
-              take: 3,
-
-              orderBy: {
-                createdAt: "asc",
-              },
-
-              select: {
-                id: true,
-                productTitle: true,
-                productImage: true,
-                quantity: true,
-              },
-            },
-          },
-        },
-
-        messages: {
-          take: 1,
-
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-
-        _count: {
-          select: {
-            messages: {
-              where: {
-                senderRole: oppositeRole,
-
-                isRead: false,
-              },
-            },
-          },
-        },
-      },
-    }),
-  ]);
-
-  const totalPages =
-    totalConversations === 0 ? 0 : Math.ceil(totalConversations / limit);
-
-  return {
-    success: true,
-
-    message: "Conversations fetched successfully",
-
-    conversations: conversations.map((conversation) => ({
-      ...conversation,
-
-      lastMessage: conversation.messages[0] ?? null,
-
-      unreadCount: conversation._count.messages,
-
-      messages: undefined,
-
-      _count: undefined,
-    })),
-
-    pagination: {
+export const getConversations =
+  async (
+    actor: ChatActor,
+    query: ChatListQuery = {},
+  ) => {
+    const {
       page,
       limit,
+      skip,
+    } = normalizePagination(
+      query.page,
+      query.limit,
+    );
 
+    const oppositeRole =
+      getOppositeRole(
+        actor,
+      );
+
+    const where =
+      actor.role === "user"
+        ? {
+            userId:
+              actor.id,
+          }
+        : {
+            sellerId:
+              actor.id,
+          };
+
+    const [
       totalConversations,
-      totalPages,
+      conversations,
+    ] =
+      await prisma.$transaction(
+        [
+          prisma.conversation.count(
+            {
+              where,
+            },
+          ),
 
-      hasPreviousPage: page > 1,
+          prisma.conversation.findMany(
+            {
+              where,
 
-      hasNextPage: page < totalPages,
-    },
+              skip,
+              take: limit,
+
+              orderBy: [
+                {
+                  lastMessageAt:
+                    "desc",
+                },
+                {
+                  createdAt:
+                    "desc",
+                },
+              ],
+
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+
+                seller: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    shopName:
+                      true,
+                  },
+                },
+
+                order: {
+                  select: {
+                    id: true,
+                    status: true,
+                    paymentStatus:
+                      true,
+                    createdAt:
+                      true,
+
+                    items: {
+                      where:
+                        actor.role ===
+                        "seller"
+                          ? {
+                              sellerId:
+                                actor.id,
+                            }
+                          : undefined,
+
+                      take: 3,
+
+                      orderBy: {
+                        createdAt:
+                          "asc",
+                      },
+
+                      select: {
+                        id: true,
+                        productTitle:
+                          true,
+                        productImage:
+                          true,
+                        quantity:
+                          true,
+                      },
+                    },
+                  },
+                },
+
+                messages: {
+                  take: 1,
+
+                  orderBy: {
+                    createdAt:
+                      "desc",
+                  },
+                },
+
+                _count: {
+                  select: {
+                    messages: {
+                      where: {
+                        senderRole:
+                          oppositeRole,
+
+                        isRead:
+                          false,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ),
+        ],
+      );
+
+    const totalPages =
+      totalConversations === 0
+        ? 0
+        : Math.ceil(
+            totalConversations /
+              limit,
+          );
+
+    return {
+      success: true,
+
+      message:
+        "Conversations fetched successfully",
+
+      conversations:
+        conversations.map(
+          (conversation) => ({
+            ...conversation,
+
+            lastMessage:
+              conversation
+                .messages[0] ??
+              null,
+
+            unreadCount:
+              conversation
+                ._count
+                .messages,
+
+            messages:
+              undefined,
+
+            _count:
+              undefined,
+          }),
+        ),
+
+      pagination: {
+        page,
+        limit,
+        totalConversations,
+        totalPages,
+        hasPreviousPage:
+          page > 1,
+        hasNextPage:
+          page <
+          totalPages,
+      },
+    };
   };
-};
 
 // ======================================================
 // GET CONVERSATION MESSAGES
 // ======================================================
 
-export const getConversationMessages = async (
-  actor: ChatActor,
-  conversationId: string,
-  query: MessageListQuery = {},
-) => {
-  const conversation = await getAccessibleConversation(actor, conversationId);
+export const getConversationMessages =
+  async (
+    actor: ChatActor,
+    conversationId: string,
+    query: MessageListQuery = {},
+  ) => {
+    const conversation =
+      await getAccessibleConversation(
+        actor,
+        conversationId,
+      );
 
-  const { page, limit, skip } = normalizePagination(query.page, query.limit);
-
-  const [totalMessages, messages] = await prisma.$transaction([
-    prisma.chatMessage.count({
-      where: {
-        conversationId: conversation.id,
-      },
-    }),
-
-    prisma.chatMessage.findMany({
-      where: {
-        conversationId: conversation.id,
-      },
-
-      skip,
-      take: limit,
-
-      orderBy: {
-        createdAt: "desc",
-      },
-    }),
-  ]);
-
-  const totalPages = totalMessages === 0 ? 0 : Math.ceil(totalMessages / limit);
-
-  return {
-    success: true,
-
-    message: "Messages fetched successfully",
-
-    conversation,
-
-    messages: messages.reverse(),
-
-    pagination: {
+    const {
       page,
       limit,
+      skip,
+    } = normalizePagination(
+      query.page,
+      query.limit,
+    );
+
+    const [
       totalMessages,
-      totalPages,
+      messages,
+    ] =
+      await prisma.$transaction(
+        [
+          prisma.chatMessage.count(
+            {
+              where: {
+                conversationId:
+                  conversation.id,
+              },
+            },
+          ),
 
-      hasPreviousPage: page > 1,
+          prisma.chatMessage.findMany(
+            {
+              where: {
+                conversationId:
+                  conversation.id,
+              },
 
-      hasNextPage: page < totalPages,
-    },
+              skip,
+              take: limit,
+
+              orderBy: {
+                createdAt:
+                  "desc",
+              },
+            },
+          ),
+        ],
+      );
+
+    const totalPages =
+      totalMessages === 0
+        ? 0
+        : Math.ceil(
+            totalMessages /
+              limit,
+          );
+
+    return {
+      success: true,
+
+      message:
+        "Messages fetched successfully",
+
+      conversation,
+
+      messages:
+        messages.reverse(),
+
+      pagination: {
+        page,
+        limit,
+        totalMessages,
+        totalPages,
+        hasPreviousPage:
+          page > 1,
+        hasNextPage:
+          page <
+          totalPages,
+      },
+    };
   };
-};
 
 // ======================================================
 // SEND MESSAGE
@@ -455,22 +624,22 @@ export const sendMessage =
   async (
     actor: ChatActor,
     conversationId: string,
-    input: SendMessageInput
+    input: SendMessageInput,
   ) => {
     const conversation =
       await getAccessibleConversation(
         actor,
-        conversationId
+        conversationId,
       );
 
     const content =
       normalizeString(
-        input.content
+        input.content,
       );
 
     if (!content) {
       throw new BadRequestError(
-        "Message cannot be empty"
+        "Message cannot be empty",
       );
     }
 
@@ -479,13 +648,13 @@ export const sendMessage =
       MAX_MESSAGE_LENGTH
     ) {
       throw new BadRequestError(
-        `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters`
+        `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters`,
       );
     }
 
     const senderRole =
       getDatabaseRole(
-        actor
+        actor,
       );
 
     const now =
@@ -499,44 +668,45 @@ export const sendMessage =
       await prisma.$transaction(
         async (tx) => {
           const createdMessage =
-            await tx.chatMessage.create({
-              data: {
-                conversationId:
-                  conversation.id,
+            await tx.chatMessage.create(
+              {
+                data: {
+                  conversationId:
+                    conversation.id,
 
-                senderId:
-                  actor.id,
+                  senderId:
+                    actor.id,
 
-                senderRole,
+                  senderRole,
 
-                type:
-                  "TEXT",
+                  type:
+                    "TEXT",
 
-                content,
+                  content,
+                },
               },
-            });
+            );
 
-          await tx.conversation.update({
-            where: {
-              id:
-                conversation.id,
-            },
+          await tx.conversation.update(
+            {
+              where: {
+                id:
+                  conversation.id,
+              },
 
-            data: {
-              lastMessageAt:
-                now,
+              data: {
+                lastMessageAt:
+                  now,
+              },
             },
-          });
+          );
 
           return createdMessage;
-        }
+        },
       );
 
     // ==================================================
     // NOTIFY RECIPIENT
-    //
-    // This runs after the database transaction succeeds.
-    // The helper handles its own notification failures.
     // ==================================================
 
     await sendChatNotification({
@@ -570,6 +740,33 @@ export const sendMessage =
         message.content,
     });
 
+    // ==================================================
+    // PUBLISH KAFKA EVENT
+    //
+    // This happens only after the message transaction
+    // succeeds. Kafka failure is handled by the helper
+    // and does not fail the customer request.
+    // ==================================================
+
+    await sendChatMessageEvent({
+      actor,
+
+      messageId:
+        message.id,
+
+      conversationId:
+        conversation.id,
+
+      orderId:
+        conversation.orderId,
+
+      userId:
+        conversation.userId,
+
+      sellerId:
+        conversation.sellerId,
+    });
+
     return {
       success: true,
 
@@ -585,67 +782,93 @@ export const sendMessage =
 // MARK CONVERSATION AS READ
 // ======================================================
 
-export const markConversationAsRead = async (
-  actor: ChatActor,
-  conversationId: string,
-) => {
-  const conversation = await getAccessibleConversation(actor, conversationId);
+export const markConversationAsRead =
+  async (
+    actor: ChatActor,
+    conversationId: string,
+  ) => {
+    const conversation =
+      await getAccessibleConversation(
+        actor,
+        conversationId,
+      );
 
-  const senderRole = getOppositeRole(actor);
+    const senderRole =
+      getOppositeRole(
+        actor,
+      );
 
-  const now = new Date();
+    const now =
+      new Date();
 
-  const result = await prisma.chatMessage.updateMany({
-    where: {
-      conversationId: conversation.id,
+    const result =
+      await prisma.chatMessage.updateMany(
+        {
+          where: {
+            conversationId:
+              conversation.id,
 
-      senderRole,
+            senderRole,
 
-      isRead: false,
-    },
+            isRead: false,
+          },
 
-    data: {
-      isRead: true,
+          data: {
+            isRead: true,
+            readAt: now,
+          },
+        },
+      );
 
-      readAt: now,
-    },
-  });
+    return {
+      success: true,
 
-  return {
-    success: true,
+      message:
+        "Conversation marked as read",
 
-    message: "Conversation marked as read",
-
-    updatedMessages: result.count,
+      updatedMessages:
+        result.count,
+    };
   };
-};
 
 // ======================================================
 // GET TOTAL UNREAD COUNT
 // ======================================================
 
-export const getUnreadMessageCount = async (actor: ChatActor) => {
-  const senderRole = getOppositeRole(actor);
+export const getUnreadMessageCount =
+  async (
+    actor: ChatActor,
+  ) => {
+    const senderRole =
+      getOppositeRole(
+        actor,
+      );
 
-  const unreadCount = await prisma.chatMessage.count({
-    where: {
-      senderRole,
+    const unreadCount =
+      await prisma.chatMessage.count(
+        {
+          where: {
+            senderRole,
 
-      isRead: false,
+            isRead: false,
 
-      conversation:
-        actor.role === "user"
-          ? {
-              userId: actor.id,
-            }
-          : {
-              sellerId: actor.id,
-            },
-    },
-  });
+            conversation:
+              actor.role ===
+              "user"
+                ? {
+                    userId:
+                      actor.id,
+                  }
+                : {
+                    sellerId:
+                      actor.id,
+                  },
+          },
+        },
+      );
 
-  return {
-    success: true,
-    unreadCount,
+    return {
+      success: true,
+      unreadCount,
+    };
   };
-};
